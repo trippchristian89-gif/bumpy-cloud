@@ -1,2 +1,2 @@
 # bumpy-cloud
-Cloud bumpy web app 
+Bumpy Cloud Backend
