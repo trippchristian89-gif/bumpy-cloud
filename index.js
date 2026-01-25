@@ -4,6 +4,7 @@ import { WebSocketServer } from "ws";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// TEst Route
 app.get("/", (req, res) => {
   res.send("BUMPY cloud online 🚐");
 });
@@ -12,6 +13,7 @@ const server = app.listen(PORT, () => {
   console.log("HTTP listening on", PORT);
 });
 
+// WebSocket
 const wss = new WebSocketServer({ server });
 
 wss.on("connection", ws => {
@@ -19,7 +21,9 @@ wss.on("connection", ws => {
 
   ws.on("message", msg => {
     console.log("MSG:", msg.toString());
+    ws.send(JSON.stringify({ hello: "bumpy" }));
   });
 
   ws.send(JSON.stringify({ status: "connected" }));
+
 });
