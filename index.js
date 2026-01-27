@@ -1,3 +1,9 @@
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(_filename);
+
 import express from "express";
 import { WebSocketServer } from "ws";
 import path from "path";
