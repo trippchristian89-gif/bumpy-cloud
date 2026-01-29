@@ -24,46 +24,55 @@ const server = app.listen(PORT, () => {
   console.log("HTTP listening on", PORT);
 });
 
-/* ===== ONE WebSocket ===== */
+/* =======================
+   WEBSOCKET (ESP32 + Browser)
+======================= */
+
 const wss = new WebSocketServer({ server });
 
-let lastPayload = null;
+let lastStatus = null;
+const clients = new Set();
 
-wss.on("connection", ws => {
-  console.log("✅ WS connected");
+wss.on("connection", (ws) => {
+  console.log("🔌 WS client connected");
+  clients.add(ws);
 
-  // Browser bekommt sofort letzten Status
-  if (lastPayload) {
+  // Wenn Browser neu verbindet → letzten Status schicken
+  if (lastStatus) {
     ws.send(JSON.stringify({
       type: "status",
-      payload: lastPayload
+      payload: lastStatus
     }));
   }
 
-  ws.on("message", msg => {
+  ws.on("message", (msg) => {
+    const text = msg.toString();
+    console.log("⬅ WS:", text);
+
+    let data;
     try {
-      const data = JSON.parse(msg.toString());
-      lastPayload = data;
+      data = JSON.parse(text);
+    } catch {
+      console.warn("❌ Invalid JSON");
+      return;
+    }
 
-      console.log("⬅ JSON:", data);
+    // 👉 ESP32 schickt reines Status-JSON
+    lastStatus = data;
 
-      // an ALLE Clients broadcasten
-      wss.clients.forEach(client => {
-        if (client.readyState === 1) {
-          client.send(JSON.stringify({
-            type: "status",
-            payload: data
-          }));
-        }
-      });
-
-    } catch (e) {
-      console.warn("❌ invalid JSON", msg.toString());
+    // 👉 an ALLE Browser verteilen
+    for (const client of clients) {
+      if (client.readyState === 1) {
+        client.send(JSON.stringify({
+          type: "status",
+          payload: data
+        }));
+      }
     }
   });
 
   ws.on("close", () => {
-    console.log("❌ WS disconnected");
+    console.log("❌ WS client disconnected");
+    clients.delete(ws);
   });
 });
-
