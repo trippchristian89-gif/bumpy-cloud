@@ -46,7 +46,7 @@ ws.onclose = () => {
 ws.onerror = (err) => {
   console.error("WS error", err);
 };
-/* ---------- FETCH STATUS ---------- */
+/* ---------- FETCH STATUS ---------- 
 setInterval(fetchStatus, 1000);
 
 async function fetchStatus() {
@@ -57,20 +57,20 @@ async function fetchStatus() {
     const data = await res.json();
     setOnline(true);
 
-    /* Temperaturen */
+    /* Temperaturen *//*
     tempBumpy = data.temp_bumpy;
     tempFloor = data.floor.temp_current;
     tempAir   = data.heater.temp_air;
-
-    /* States */
+    
+    /* States *//*
     floorState  = data.floor.state;
     heaterState = data.heater.state;
     heaterInfo  = data.heater.info;
 
-    /* Timer */
+    /* Timer *//*
     floorTimerRemaining = data.floor.timer_remaining;
 
-    /* Fehler */
+    /* Fehler *//*
     ntcFloorError = data.floor.ntc_error;
     ntcAirError   = data.heater.ntc_air_error;
     ntcBumpyError = data.ntc_bumpy_error;
@@ -81,6 +81,7 @@ async function fetchStatus() {
     setOnline(false);
   }
 }
+*/
 
 /* ---------- COMMANDS (REST) ---------- */
 function startHeater() {
@@ -156,5 +157,6 @@ function attachLongPress(buttonId, actionFn) {
 attachLongPress("btn_start", startHeater);
 
 attachLongPress("btn_stop", stopHeater);
+
 
 
