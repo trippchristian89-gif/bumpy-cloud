@@ -13,10 +13,13 @@ let ntcFloorError = false;
 let ntcAirError   = false;
 let ntcBumpyError = false;
 
-/* ================= WEBSOCKET ================= */
+/* =======================
+   WebSocket (Browser → Cloud)
+======================= */
 
 const wsProtocol = location.protocol === "https:" ? "wss://" : "ws://";
 const wsUrl = wsProtocol + location.host;
+
 const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
@@ -24,29 +27,30 @@ ws.onopen = () => {
 };
 
 ws.onmessage = (event) => {
+  let data;
   try {
-    const data = JSON.parse(event.data);
-    console.log("⬅ WS", data);
-
-    /* === ESP32 Online / Offline === */
-    if (data.type === "device") {
-      setOnline(data.online);
-      return;
-    }
-
-    /* === Statusdaten vom ESP32 === */
-    if (data.type === "status") {
-      applyStatus(data.payload);
-    }
-
+    data = JSON.parse(event.data);
   } catch (e) {
     console.warn("WS non-JSON", event.data);
+    return;
+  }
+
+  /* ===== ESP32 Online / Offline ===== */
+  if (data.type === "device") {
+    console.log("📡 Device online:", data.online);
+    setDeviceOnline(data.online);
+    return;
+  }
+
+  /* ===== Status vom ESP32 ===== */
+  if (data.type === "status") {
+    applyStatus(data.payload);
   }
 };
 
 ws.onclose = () => {
   console.warn("⚠️ WS disconnected");
-  setOnline(false);
+  setDeviceOnline(false);
 };
 
 ws.onerror = (err) => {
@@ -150,6 +154,7 @@ function attachLongPress(buttonId, actionFn) {
 attachLongPress("btn_start", startHeater);
 
 attachLongPress("btn_stop", stopHeater);
+
 
 
 
