@@ -3,7 +3,7 @@ import { WebSocketServer } from "ws";
 import path from "path";
 import { fileURLToPath } from "url";
 
-/* ===== __dirname Fix (ESM!) ===== */
+/* ===== ESM Fix ===== */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -11,23 +11,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-/* ===== Letzter Status vom ESP32 ===== */
-let lastStatus = null;
-let lastSeen = null;
-
 /* ===== Static Frontend ===== */
 app.use(express.static(path.join(__dirname, "public")));
 
-/* ===== REST: Status für Web-UI ===== */
-app.get("/api/status", (req, res) => {
-  res.json({
-    online: !!lastStatus,
-    lastSeen,
-    data: lastStatus
-  });
-});
-
-/* ===== Health ===== */
+/* ===== HTTP Health ===== */
 app.get("/api/health", (req, res) => {
   res.json({ status: "BUMPY cloud online 🚐" });
 });
@@ -40,43 +27,101 @@ const server = app.listen(PORT, () => {
 /* ===== WebSocket Server ===== */
 const wss = new WebSocketServer({ server });
 
-wss.on("connection", ws => {
-  console.log("✅ WS client connected");
+/* ===== State ===== */
+let deviceSocket = null;
+let lastStatus = null;
 
-  ws.on("message", raw => {
-    try {
-      const msg = raw.toString();
-      console.log("⬅ WS MSG:", msg);
+/* ===== WS Routing ===== */
+wss.on("connection", (ws, req) => {
+  const url = req.url;
 
-      const parsed = JSON.parse(msg);
+  /* ===== DEVICE ===== */
+  if (url === "/ws/device") {
+    console.log("🔌 DEVICE connected");
+    deviceSocket = ws;
 
-      // Status merken
-      lastStatus = parsed;
-      lastSeen = new Date().toISOString();
+    ws.on("message", msg => {
+      try {
+        const data = JSON.parse(msg.toString());
+        lastStatus = data;
 
-      // ACK an ESP32
+        // an alle Clients weiterreichen
+        broadcastToClients({
+          type: "status",
+          payload: data
+        });
+
+      } catch (e) {
+        console.error("❌ Invalid JSON from device");
+      }
+    });
+
+    ws.on("close", () => {
+      console.log("❌ DEVICE disconnected");
+      deviceSocket = null;
+
+      broadcastToClients({
+        type: "device",
+        online: false
+      });
+    });
+
+    // Device online melden
+    broadcastToClients({
+      type: "device",
+      online: true
+    });
+
+    return;
+  }
+
+  /* ===== CLIENT ===== */
+  if (url === "/ws/client") {
+    console.log("🧑‍💻 CLIENT connected");
+
+    // sofort letzten Status senden
+    if (lastStatus) {
       ws.send(JSON.stringify({
-        type: "ack",
-        received: true,
-        ts: lastSeen
+        type: "status",
+        payload: lastStatus
       }));
-    } catch (err) {
-      console.error("❌ WS parse error:", err.message);
     }
-  });
 
-  ws.on("close", () => {
-    console.log("⚠️ WS client disconnected");
-  });
+    ws.send(JSON.stringify({
+      type: "device",
+      online: !!deviceSocket
+    }));
 
-  ws.on("error", err => {
-    console.error("❌ WS error:", err.message);
-  });
+    ws.on("message", msg => {
+      try {
+        const data = JSON.parse(msg.toString());
 
-  // Initiale Antwort
-  ws.send(JSON.stringify({
-    type: "status",
-    status: "connected"
-  }));
+        // Command vom Client → Device
+        if (data.type === "cmd" && deviceSocket) {
+          deviceSocket.send(JSON.stringify(data));
+        }
+
+      } catch (e) {
+        console.error("❌ Invalid JSON from client");
+      }
+    });
+
+    return;
+  }
+
+  /* ===== UNKNOWN ===== */
+  console.log("⚠️ Unknown WS path:", url);
+  ws.close();
 });
 
+/* ===== Helpers ===== */
+function broadcastToClients(message) {
+  wss.clients.forEach(client => {
+    if (
+      client.readyState === 1 &&
+      client !== deviceSocket
+    ) {
+      client.send(JSON.stringify(message));
+    }
+  });
+}
