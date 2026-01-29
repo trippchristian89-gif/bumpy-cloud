@@ -3,103 +3,66 @@ import { WebSocketServer } from "ws";
 import path from "path";
 import { fileURLToPath } from "url";
 
+/* ===== ESM Fix ===== */
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const _dirname = path.dirname(_filename);
 
+/* ===== App ===== */
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+/* ===== Static Frontend ===== */
 app.use(express.static(path.join(__dirname, "public")));
 
+/* ===== Health ===== */
+app.get("/api/health", (req, res) => {
+  res.json({ status: "BUMPY cloud online 🚐" });
+});
+
+/* ===== HTTP ===== */
 const server = app.listen(PORT, () => {
   console.log("HTTP listening on", PORT);
 });
 
-/* =======================
-   WEBSOCKETS
-======================= */
+/* ===== ONE WebSocket ===== */
+const wss = new WebSocketServer({ server });
 
-/* ===== State ===== */
-let deviceSocket = null;
-const clientSockets = new Set();
+let lastPayload = null;
 
-/* =======================
-   ESP32 → CLOUD
-======================= */
-const wssDevice = new WebSocketServer({
-  server,
-  path: "/ws/device",
-});
+wss.on("connection", ws => {
+  console.log("✅ WS connected");
 
-wssDevice.on("connection", (ws) => {
-  console.log("✅ ESP32 connected");
-  deviceSocket = ws;
-
-  ws.on("message", (msg) => {
-    const raw = msg.toString();
-    console.log("⬅ ESP32:", raw);
-
-    let payload;
-    try {
-      payload = JSON.parse(raw);
-    } catch (e) {
-      console.error("❌ Invalid JSON from ESP32");
-      return;
-    }
-
-    /* ===== ACK an ESP32 (WICHTIG für stabile Verbindung) ===== */
+  // Browser bekommt sofort letzten Status
+  if (lastPayload) {
     ws.send(JSON.stringify({
-      type: "ack",
-      ts: Date.now()
-    }));
-
-    /* ===== Broadcast an alle Browser ===== */
-    for (const client of clientSockets) {
-      if (client.readyState === client.OPEN) {
-        client.send(JSON.stringify({
-          type: "status",
-          payload
-        }));
-      }
-    }
-  });
-
-  ws.on("close", () => {
-    console.warn("❌ ESP32 disconnected");
-    deviceSocket = null;
-  });
-
-  ws.on("error", (err) => {
-    console.error("❌ ESP32 WS error", err);
-  });
-});
-
-/* =======================
-   BROWSER → CLOUD
-======================= */
-const wssClient = new WebSocketServer({
-  server,
-  path: "/ws/client",
-});
-
-wssClient.on("connection", (ws) => {
-  console.log("🌐 Browser connected");
-  clientSockets.add(ws);
-
-  /* Optional: sofort Status senden, wenn ESP32 da ist */
-  if (deviceSocket) {
-    ws.send(JSON.stringify({
-      type: "info",
-      msg: "ESP32 online"
+      type: "status",
+      payload: lastPayload
     }));
   }
 
-  ws.on("close", () => {
-    console.log("🌐 Browser disconnected");
-    clientSockets.delete(ws);
+  ws.on("message", msg => {
+    try {
+      const data = JSON.parse(msg.toString());
+      lastPayload = data;
+
+      console.log("⬅ JSON:", data);
+
+      // an ALLE Clients broadcasten
+      wss.clients.forEach(client => {
+        if (client.readyState === 1) {
+          client.send(JSON.stringify({
+            type: "status",
+            payload: data
+          }));
+        }
+      });
+
+    } catch (e) {
+      console.warn("❌ invalid JSON", msg.toString());
+    }
   });
 
-  ws.on("error", (err) => {
-    console.error("🌐 Browser WS error", err);
+  ws.on("close", () => {
+    console.log("❌ WS disconnected");
   });
 });
