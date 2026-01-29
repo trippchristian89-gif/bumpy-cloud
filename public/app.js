@@ -13,28 +13,34 @@ let ntcFloorError = false;
 let ntcAirError   = false;
 let ntcBumpyError = false;
 
-/* ===== WebSocket (Browser ↔ Cloud) ===== */
+/* ================= WEBSOCKET ================= */
 
 const wsProtocol = location.protocol === "https:" ? "wss://" : "ws://";
 const wsUrl = wsProtocol + location.host;
-
 const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
   console.log("🧑‍💻 WS connected to cloud");
-  setOnline(true);
 };
 
 ws.onmessage = (event) => {
   try {
-    const msg = JSON.parse(event.data);
+    const data = JSON.parse(event.data);
+    console.log("⬅ WS", data);
 
-    if (msg.type === "status") {
-      updateUI(msg.payload);
-      setOnline(true);
+    /* === ESP32 Online / Offline === */
+    if (data.type === "device") {
+      setOnline(data.online);
+      return;
     }
+
+    /* === Statusdaten vom ESP32 === */
+    if (data.type === "status") {
+      applyStatus(data.payload);
+    }
+
   } catch (e) {
-    console.warn("WS non-JSON:", event.data);
+    console.warn("WS non-JSON", event.data);
   }
 };
 
@@ -46,42 +52,29 @@ ws.onclose = () => {
 ws.onerror = (err) => {
   console.error("WS error", err);
 };
-/* ---------- FETCH STATUS ---------- 
-setInterval(fetchStatus, 1000);
 
-async function fetchStatus() {
-  try {
-    const res = await fetch("/api/status");
-    if (!res.ok) throw new Error();
+/* ================= MAPPING ================= */
+function applyStatus(data) {
 
-    const data = await res.json();
-    setOnline(true);
+  /* bumpy */
+  tempBumpy = data.temp_bumpy;
+  ntcBumpyError = data.ntc_bumpy_error;
 
-    /* Temperaturen *//*
-    tempBumpy = data.temp_bumpy;
-    tempFloor = data.floor.temp_current;
-    tempAir   = data.heater.temp_air;
-    
-    /* States *//*
-    floorState  = data.floor.state;
-    heaterState = data.heater.state;
-    heaterInfo  = data.heater.info;
+  /* floorHeating */
+  floorState  = data.floor.state;
+  floorTimerRemaining = data.floor.timer_remaining;
+  floorTimerTotal = data.floor.timer_total
+  tempFloor = data.floor.temp_current;
+  ntcFloorError = data.floor.ntc_error;
 
-    /* Timer *//*
-    floorTimerRemaining = data.floor.timer_remaining;
+  /* heater */
+  heaterState = data.heater.state;
+  heaterInfo  = data.heater.info || "";
+  tempAir   = data.heater.temp_air;
+  ntcAirError   = data.heater.ntc_air_error;
 
-    /* Fehler *//*
-    ntcFloorError = data.floor.ntc_error;
-    ntcAirError   = data.heater.ntc_air_error;
-    ntcBumpyError = data.ntc_bumpy_error;
-    ntcBumpyError = false; // optional später
-
-    updateUI();
-  } catch (e) {
-    setOnline(false);
-  }
+  updateUI();
 }
-*/
 
 /* ---------- COMMANDS (REST) ---------- */
 function startHeater() {
@@ -157,6 +150,7 @@ function attachLongPress(buttonId, actionFn) {
 attachLongPress("btn_start", startHeater);
 
 attachLongPress("btn_stop", stopHeater);
+
 
 
 
