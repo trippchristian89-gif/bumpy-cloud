@@ -76,7 +76,7 @@ wss.on("connection", (ws) => {
       broadcastDeviceStatus();
     }
 
-   /* if (role === "device") {
+    if (role === "device") {
       console.log("⬅ ESP32:", data);
       lastStatus = data;
 
@@ -84,7 +84,7 @@ wss.on("connection", (ws) => {
         type: "status",
         payload: data 
       });
-    }*/
+    }
   });
 
   ws.on("close", () => {
@@ -123,6 +123,7 @@ function broadcastToBrowsers(obj) {
     }
   }
 }
+
 
 
 
