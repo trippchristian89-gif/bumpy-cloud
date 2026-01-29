@@ -7,6 +7,8 @@ import { fileURLToPath } from "url";
 let deviceOnline = false;
 let lastStatus = null;
 let deviceSocket = null;
+let lastStatus = null;
+
 const browserClients = new Set();
 
 /* ===== ESM Fix ===== */
@@ -35,10 +37,6 @@ const server = app.listen(PORT, () => {
 ======================= */
 
 const wss = new WebSocketServer({ server });
-
-let deviceSocket = null;
-let deviceOnline = false;
-let lastStatus = null;
 
 const browserClients = new Set();
 
@@ -132,3 +130,4 @@ function broadcastToBrowsers(obj) {
     }
   }
 }
+
