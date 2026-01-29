@@ -83,8 +83,8 @@ wss.on("connection", (ws) => {
       broadcastToBrowsers({
         type: "status",
         payload: data 
-      });*/
-    }
+      });
+    }*/
   });
 
   ws.on("close", () => {
@@ -123,5 +123,6 @@ function broadcastToBrowsers(obj) {
     }
   }
 }
+
 
 
