@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 let deviceOnline = false;
 let lastStatus = null;
 let deviceSocket = null;
-let lastStatus = null;
+
 
 const browserClients = new Set();
 
@@ -130,4 +130,5 @@ function broadcastToBrowsers(obj) {
     }
   }
 }
+
 
