@@ -13,24 +13,38 @@ let ntcFloorError = false;
 let ntcAirError   = false;
 let ntcBumpyError = false;
 
-/* ===== WebSocket (Browser → Cloud) ===== */
+/* ===== WebSocket (Browser ↔ Cloud) ===== */
+
 const wsProtocol = location.protocol === "https:" ? "wss://" : "ws://";
-const ws = new WebSocket(wsProtocol + location.host + "/");
+const wsUrl = wsProtocol + location.host;
+
+const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
-  console.log("🌐 WS connected");
+  console.log("🧑‍💻 WS connected to cloud");
+  setOnline(true);
 };
 
 ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
+  try {
+    const msg = JSON.parse(event.data);
 
-  if (data.type === "status") {
-    updateUI(data.payload);
+    if (msg.type === "status") {
+      updateUI(msg.payload);
+      setOnline(true);
+    }
+  } catch (e) {
+    console.warn("WS non-JSON:", event.data);
   }
 };
 
 ws.onclose = () => {
   console.warn("⚠️ WS disconnected");
+  setOnline(false);
+};
+
+ws.onerror = (err) => {
+  console.error("WS error", err);
 };
 /* ---------- FETCH STATUS ---------- */
 setInterval(fetchStatus, 1000);
@@ -142,4 +156,5 @@ function attachLongPress(buttonId, actionFn) {
 attachLongPress("btn_start", startHeater);
 
 attachLongPress("btn_stop", stopHeater);
+
 
