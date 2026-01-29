@@ -7,13 +7,11 @@ import { fileURLToPath } from "url";
 let deviceOnline = false;
 let lastStatus = null;
 let deviceSocket = null;
-
-
 const browserClients = new Set();
 
 /* ===== ESM Fix ===== */
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const _dirname = path.dirname(_filename);
 
 /* ===== App ===== */
 const app = express();
@@ -38,11 +36,10 @@ const server = app.listen(PORT, () => {
 
 const wss = new WebSocketServer({ server });
 
-
 wss.on("connection", (ws) => {
   console.log("🔌 WS connection");
 
-  let role = "browser"; // default
+  let role = "browser";
   browserClients.add(ws);
 
   // Browser sofort informieren
@@ -67,7 +64,7 @@ wss.on("connection", (ws) => {
       return;
     }
 
-    // 👉 ERSTE JSON-NACHRICHT = ESP32
+    // 👉 Erste Nachricht = ESP32
     if (role === "browser") {
       console.log("✅ ESP32 identified");
       role = "device";
@@ -101,24 +98,10 @@ wss.on("connection", (ws) => {
       console.log("🌐 Browser disconnected");
     }
   });
-});
 
-  /* ===== DEFAULT = BROWSER ===== */
-  role = "browser";
-  browserClients.add(ws);
-
-  // Browser sofort informieren
-  ws.send(JSON.stringify({
-    type: "device",
-    online: deviceOnline
-  }));
-
-  if (lastStatus) {
-    ws.send(JSON.stringify({
-      type: "status",
-      payload: lastStatus
-    }));
-  }
+  ws.on("error", () => {
+    console.warn("⚠️ WS error");
+  });
 });
 
 /* =======================
@@ -140,7 +123,3 @@ function broadcastToBrowsers(obj) {
     }
   }
 }
-
-
-
-
