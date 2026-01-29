@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 
 /* ===== ESM Fix ===== */
 const __filename = fileURLToPath(import.meta.url);
-const _dirname = path.dirname(_filename);
+const __dirname = path.dirname(__filename);
 
 /* ===== App ===== */
 const app = express();
@@ -66,3 +66,4 @@ wss.on("connection", ws => {
     console.log("❌ WS disconnected");
   });
 });
+
