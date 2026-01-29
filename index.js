@@ -31,63 +31,75 @@ const server = app.listen(PORT, () => {
 });
 
 /* =======================
-   WEBSOCKET
+   WEBSOCKET (Single Socket)
 ======================= */
+
 const wss = new WebSocketServer({ server });
+
+let deviceSocket = null;
+let deviceOnline = false;
+let lastStatus = null;
+
+const browserClients = new Set();
 
 wss.on("connection", (ws) => {
   console.log("🔌 WS connection");
 
-  let isDevice = false;
+  let role = "unknown"; // "device" | "browser"
 
   ws.on("message", (msg) => {
     let data;
     try {
       data = JSON.parse(msg.toString());
-    } catch (e) {
+    } catch {
       console.warn("⚠️ Invalid JSON");
       return;
     }
 
-    /* ===== ESP32 meldet sich ===== */
-    if (!isDevice) {
-      console.log("✅ ESP32 identified");
-      isDevice = true;
+    /* ===== DEVICE IDENTIFICATION ===== */
+    if (role === "unknown") {
+      role = "device";
       deviceSocket = ws;
       deviceOnline = true;
+
+      console.log("✅ ESP32 identified");
       broadcastDeviceStatus();
     }
 
-    /* ===== Status merken & an Browser verteilen ===== */
-    lastStatus = data;
+    /* ===== STATUS VOM ESP32 ===== */
+    if (role === "device") {
+      lastStatus = data;
 
-    broadcastToBrowsers({
-      type: "status",
-      payload: data,
-    });
+      broadcastToBrowsers({
+        type: "status",
+        payload: data
+      });
+    }
   });
 
   ws.on("close", () => {
-    if (isDevice) {
+    if (role === "device") {
       console.warn("❌ ESP32 disconnected");
       deviceOnline = false;
       deviceSocket = null;
       broadcastDeviceStatus();
-    } else {
+    }
+
+    if (role === "browser") {
       browserClients.delete(ws);
       console.log("🌐 Browser disconnected");
     }
   });
 
-  /* ===== Browser-Verbindung ===== */
   ws.on("error", () => {
-    console.warn("WS error");
+    console.warn("⚠️ WS error");
   });
 
-  // Browser sofort registrieren
+  /* ===== DEFAULT = BROWSER ===== */
+  role = "browser";
   browserClients.add(ws);
 
-  // Sofort aktuellen Zustand schicken
+  // Browser sofort informieren
   ws.send(JSON.stringify({
     type: "device",
     online: deviceOnline
@@ -104,6 +116,7 @@ wss.on("connection", (ws) => {
 /* =======================
    Helper
 ======================= */
+
 function broadcastDeviceStatus() {
   broadcastToBrowsers({
     type: "device",
