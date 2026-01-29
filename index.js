@@ -3,6 +3,12 @@ import { WebSocketServer } from "ws";
 import path from "path";
 import { fileURLToPath } from "url";
 
+/* ===== Globaler Zustand ===== */
+let deviceOnline = false;
+let lastStatus = null;
+let deviceSocket = null;
+const browserClients = new Set();
+
 /* ===== ESM Fix ===== */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,54 +31,91 @@ const server = app.listen(PORT, () => {
 });
 
 /* =======================
-   WEBSOCKET (ESP32 + Browser)
+   WEBSOCKET
 ======================= */
-
 const wss = new WebSocketServer({ server });
 
-let lastStatus = null;
-const clients = new Set();
-
 wss.on("connection", (ws) => {
-  console.log("🔌 WS client connected");
-  clients.add(ws);
+  console.log("🔌 WS connection");
 
-  // Wenn Browser neu verbindet → letzten Status schicken
+  let isDevice = false;
+
+  ws.on("message", (msg) => {
+    let data;
+    try {
+      data = JSON.parse(msg.toString());
+    } catch (e) {
+      console.warn("⚠️ Invalid JSON");
+      return;
+    }
+
+    /* ===== ESP32 meldet sich ===== */
+    if (!isDevice) {
+      console.log("✅ ESP32 identified");
+      isDevice = true;
+      deviceSocket = ws;
+      deviceOnline = true;
+      broadcastDeviceStatus();
+    }
+
+    /* ===== Status merken & an Browser verteilen ===== */
+    lastStatus = data;
+
+    broadcastToBrowsers({
+      type: "status",
+      payload: data,
+    });
+  });
+
+  ws.on("close", () => {
+    if (isDevice) {
+      console.warn("❌ ESP32 disconnected");
+      deviceOnline = false;
+      deviceSocket = null;
+      broadcastDeviceStatus();
+    } else {
+      browserClients.delete(ws);
+      console.log("🌐 Browser disconnected");
+    }
+  });
+
+  /* ===== Browser-Verbindung ===== */
+  ws.on("error", () => {
+    console.warn("WS error");
+  });
+
+  // Browser sofort registrieren
+  browserClients.add(ws);
+
+  // Sofort aktuellen Zustand schicken
+  ws.send(JSON.stringify({
+    type: "device",
+    online: deviceOnline
+  }));
+
   if (lastStatus) {
     ws.send(JSON.stringify({
       type: "status",
       payload: lastStatus
     }));
   }
-
-  ws.on("message", (msg) => {
-    const text = msg.toString();
-    console.log("⬅ WS:", text);
-
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      console.warn("❌ Invalid JSON");
-      return;
-    }
-
-    // 👉 ESP32 schickt reines Status-JSON
-    lastStatus = data;
-
-    // 👉 an ALLE Browser verteilen
-    for (const client of clients) {
-      if (client.readyState === 1) {
-        client.send(JSON.stringify({
-          type: "status",
-          payload: data
-        }));
-      }
-    }
-  });
-
-  ws.on("close", () => {
-    console.log("❌ WS client disconnected");
-    clients.delete(ws);
-  });
 });
+
+/* =======================
+   Helper
+======================= */
+function broadcastDeviceStatus() {
+  broadcastToBrowsers({
+    type: "device",
+    online: deviceOnline
+  });
+}
+
+function broadcastToBrowsers(obj) {
+  const msg = JSON.stringify(obj);
+  for (const client of browserClients) {
+    if (client.readyState === 1) {
+      client.send(msg);
+    }
+  }
+}
