@@ -38,7 +38,6 @@ const server = app.listen(PORT, () => {
 
 const wss = new WebSocketServer({ server });
 
-const browserClients = new Set();
 
 wss.on("connection", (ws) => {
   console.log("🔌 WS connection");
@@ -130,5 +129,6 @@ function broadcastToBrowsers(obj) {
     }
   }
 }
+
 
 
