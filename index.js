@@ -1,13 +1,9 @@
+Index.js
+
 import express from "express";
 import { WebSocketServer } from "ws";
 import path from "path";
 import { fileURLToPath } from "url";
-
-/* ===== Globaler Zustand ===== */
-let deviceOnline = false;
-let lastStatus = null;
-let deviceSocket = null;
-const browserClients = new Set();
 
 /* ===== ESM Fix ===== */
 const __filename = fileURLToPath(import.meta.url);
@@ -17,43 +13,36 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-/* ===== Static Frontend ===== */
 app.use(express.static(path.join(__dirname, "public")));
 
-/* ===== Health ===== */
 app.get("/api/health", (req, res) => {
-  res.json({ status: "BUMPY cloud online 🚐" });
+  res.json({ status: "ok" });
 });
 
-/* ===== HTTP ===== */
 const server = app.listen(PORT, () => {
-  console.log("HTTP listening on", PORT);
+  console.log("🚀 HTTP listening on", PORT);
 });
 
 /* =======================
-   WEBSOCKET (Single Socket)
+   GLOBAL STATE
 ======================= */
+let deviceSocket = null;
+let deviceOnline = false;
+let lastHeartbeat = 0;
+let streamingEnabled = false;
+let lastStatus = null;
 
+const browserClients = new Set();
+
+/* =======================
+   WEBSOCKET
+======================= */
 const wss = new WebSocketServer({ server });
 
 wss.on("connection", (ws) => {
   console.log("🔌 WS connection");
 
-  let role = "browser";
-  browserClients.add(ws);
-
-  // Browser sofort informieren
-  ws.send(JSON.stringify({
-    type: "device",
-    online: deviceOnline
-  }));
-
-  if (lastStatus) {
-    ws.send(JSON.stringify({
-      type: "status",
-      payload: lastStatus
-    }));
-  }
+  let role = "unknown"; // device | browser
 
   ws.on("message", (msg) => {
     let data;
@@ -64,50 +53,124 @@ wss.on("connection", (ws) => {
       return;
     }
 
-    // 👉 Erste Nachricht = ESP32
-    if (role === "browser") {
-      console.log("✅ ESP32 identified");
-      role = "device";
+    /* ===== IDENTIFY ===== */
+    if (data.type === "identify") {
+      role = data.role;
 
-      browserClients.delete(ws);
-      deviceSocket = ws;
-      deviceOnline = true;
+      if (role === "device") {
+        console.log("✅ ESP32 identified");
+        deviceSocket = ws;
+        deviceOnline = true;
+        lastHeartbeat = Date.now();
+        broadcastDeviceStatus();
+      }
 
-      broadcastDeviceStatus();
+      if (role === "browser") {
+        console.log("🌐 Browser identified");
+        browserClients.add(ws);
+
+        // Browser bekommt sofort Status
+        ws.send(JSON.stringify({
+          type: "device",
+          online: deviceOnline
+        }));
+
+        if (lastStatus) {
+          ws.send(JSON.stringify({
+            type: "status",
+            payload: lastStatus
+          }));
+        }
+
+        // Streaming aktivieren
+        enableStreaming();
+      }
+
+      return;
     }
 
-    if (role === "device") {
-      console.log("⬅ ESP32:", data);
-      lastStatus = data;
+    /* ===== HEARTBEAT ===== */
+    if (data.type === "heartbeat" && role === "device") {
+      lastHeartbeat = Date.now();
+      return;
+    }
 
+    /* ===== STATUS ===== */
+    if (data.type === "status" && role === "device") {
+      lastStatus = data.payload;
+
+      // NICHT ins Log schreiben (Datensparen!)
       broadcastToBrowsers({
         type: "status",
-        payload: data 
+        payload: data.payload
       });
+      return;
+    }
+
+    /* ===== COMMANDS FROM BROWSER ===== */
+    if (data.type === "command" && role === "browser") {
+      if (!deviceSocket) return;
+
+      console.log("➡️ Command to ESP32:", data.command);
+
+      deviceSocket.send(JSON.stringify({
+        type: "command",
+        command: data.command
+      }));
     }
   });
 
   ws.on("close", () => {
     if (role === "device") {
       console.warn("❌ ESP32 disconnected");
-      deviceOnline = false;
       deviceSocket = null;
+      deviceOnline = false;
       broadcastDeviceStatus();
-    } else {
-      browserClients.delete(ws);
-      console.log("🌐 Browser disconnected");
     }
-  });
 
-  ws.on("error", () => {
-    console.warn("⚠️ WS error");
+    if (role === "browser") {
+      console.log("🌐 Browser disconnected");
+      browserClients.delete(ws);
+
+      if (browserClients.size === 0) {
+        disableStreaming();
+      }
+    }
   });
 });
 
 /* =======================
-   Helper
+   HEARTBEAT WATCHDOG
 ======================= */
+setInterval(() => {
+  if (deviceOnline && Date.now() - lastHeartbeat > 15000) {
+    console.warn("⏱️ ESP32 heartbeat timeout");
+    deviceOnline = false;
+    deviceSocket = null;
+    broadcastDeviceStatus();
+  }
+}, 5000);
 
+/* =======================
+   STREAM CONTROL
+======================= */
+function enableStreaming() {
+  if (!deviceSocket) return;
+  streamingEnabled = true;
+  console.log("📡 Streaming ON");
+  deviceSocket.send(JSON.stringify({ type: "stream_on" }));
+}
+
+function disableStreaming() {
+  if (!deviceSocket) return;
+  streamingEnabled = false;
+  console.log("📴 Streaming OFF");
+  deviceSocket.send(JSON.stringify({ type: "stream_off" }));
+}
+
+/* =======================
+   BROADCAST
+======================= */
 function broadcastDeviceStatus() {
   broadcastToBrowsers({
     type: "device",
@@ -117,13 +180,7 @@ function broadcastDeviceStatus() {
 
 function broadcastToBrowsers(obj) {
   const msg = JSON.stringify(obj);
-  for (const client of browserClients) {
-    if (client.readyState === 1) {
-      client.send(msg);
-    }
+  for (const c of browserClients) {
+    if (c.readyState === 1) c.send(msg);
   }
 }
-
-
-
-
