@@ -22,11 +22,27 @@ const ws = new WebSocket(wsProto + location.host);
 
 ws.onopen = () => {
   console.log("🌐 WS connected");
-  ws.send(JSON.stringify({ type: "identify", role: "browser" }));
+
+  // Browser identifizieren
+  ws.send(JSON.stringify({
+    type: "identify",
+    role: "browser"
+  }));
+
+  // 👉 Stream anfordern (ESP32 beginnt zu senden)
+  ws.send(JSON.stringify({
+    stream: true
+  }));
 };
 
 ws.onmessage = (e) => {
-  const data = JSON.parse(e.data);
+  let data;
+  try {
+    data = JSON.parse(e.data);
+  } catch {
+    console.warn("Non-JSON WS message");
+    return;
+  }
 
   if (data.type === "device") {
     setOnline(data.online);
@@ -37,13 +53,32 @@ ws.onmessage = (e) => {
   }
 };
 
+ws.onclose = () => {
+  console.warn("⚠️ WS disconnected");
+  setOnline(false);
+};
+
+/* ===== Heater Commands ===== */
 function startHeater() {
-  ws.send(JSON.stringify({ type: "command", command: "heater_start" }));
+  ws.send(JSON.stringify({
+    type: "command",
+    command: "heater_start"
+  }));
 }
 
 function stopHeater() {
-  ws.send(JSON.stringify({ type: "command", command: "heater_stop" }));
+  ws.send(JSON.stringify({
+    type: "command",
+    command: "heater_stop"
+  }));
 }
+
+/* ===== Stream sauber beenden ===== */
+window.addEventListener("beforeunload", () => {
+  ws.send(JSON.stringify({
+    stream: false
+  }));
+});
 
 /* ================= MAPPING ================= */
 function applyStatus(data) {
@@ -142,6 +177,7 @@ function attachLongPress(buttonId, actionFn) {
 attachLongPress("btn_start", startHeater);
 
 attachLongPress("btn_stop", stopHeater);
+
 
 
 
