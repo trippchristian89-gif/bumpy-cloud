@@ -58,10 +58,12 @@ wss.on("connection", (ws) => {
         console.log("✅ ESP32 identified (resetting previous state)");
       
         // 🔥 ALTEN SOCKET HART ENTFERNEN
-        if (deviceSocket && deviceSocket !== ws) {
+       if (deviceSocket && deviceSocket !== ws) {
           try {
             deviceSocket.terminate();
-          } catch {}
+          } catch (err) {
+            console.warn("⚠️ Failed to terminate old device socket");
+          }
         }
       
         deviceSocket = ws;
@@ -203,6 +205,7 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
 
 
