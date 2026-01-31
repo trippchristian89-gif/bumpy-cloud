@@ -80,7 +80,7 @@ function applyStatus(data) {
   floorState = data.floor.state;
   tempFloor = data.floor.temp_current;
   floorTimerRemaining = data.floor.timer_remaining;   
-  floorTimerTotal = data.floor.TimerTotal;
+  floorTimerTotal = data.floor.Timer_Total;
   ntcFloorError = data.floor.ntc_error;
 
   heaterState = data.heater.state;
@@ -100,3 +100,40 @@ function setOnline(isOnline) {
   el.className = "status " + (isOnline ? "online" : "offline");
 }
 
+// Update UI 
+
+function updateUI() {
+  setText("temp_bumpy", formatTemp(tempBumpy), ntcBumpyError);
+  setText("floor_temp", formatTemp(tempFloor), ntcFloorError);
+  setText("temp_air", formatTemp(tempAir), ntcAirError);
+
+  document.getElementById("floor_state").textContent = floorState;
+  document.getElementById("heater_state").textContent = heaterState;
+
+  const infoEl = document.getElementById("heater_info");
+  infoEl.textContent = heaterInfo || "";
+  infoEl.className =
+    heaterInfo.includes("FAILED") ? "info error" : "info";
+
+  document.getElementById("floor_timer").textContent =
+    ${formatTime(floorTimerRemaining)} / ${formatTime(floorTimerTotal)};
+}
+
+function setText(id, text, error) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = error ? "#c53030" : "";
+}
+
+function formatTemp(v) {
+  if (v === undefined || v === null) return "--.- °C";
+  return Number(v).toFixed(1) + " °C";
+}
+
+function formatTime(sec) {
+  if (sec === undefined || sec === null) return "--:--";
+  const m = Math.floor(sec / 60).toString().padStart(2, "0");
+  const s = Math.floor(sec % 60).toString().padStart(2, "0");
+  return ${m}:${s};
+}
