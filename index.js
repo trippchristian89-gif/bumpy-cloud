@@ -125,7 +125,6 @@ wss.on("connection", (ws) => {
       console.warn("❌ ESP32 disconnected");
       deviceSocket = null;
       deviceOnline = false;
-     // streamingEnabled = false;   // 🔴 WICHTIG
       broadcastDeviceStatus();
     }
 
@@ -149,7 +148,6 @@ setInterval(() => {
 
     deviceOnline = false;
     deviceSocket = null;
-    // streamingEnabled = false;   // 🔴 WICHTIG
     broadcastDeviceStatus();
   }
 }, 5000);
@@ -185,6 +183,7 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
 
 
