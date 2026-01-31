@@ -140,8 +140,10 @@ wss.on("connection", (ws) => {
 setInterval(() => {
   if (deviceOnline && Date.now() - lastHeartbeat > 15000) {
     console.warn("⏱️ ESP32 heartbeat timeout");
+
     deviceOnline = false;
     deviceSocket = null;
+    streamingEnabled = false;   // 🔴 WICHTIG
     broadcastDeviceStatus();
   }
 }, 5000);
@@ -177,3 +179,4 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
