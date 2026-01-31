@@ -27,13 +27,12 @@ const server = app.listen(PORT, () => {
 let deviceSocket = null;
 let deviceOnline = false;
 let lastHeartbeat = 0;
-let streamingEnabled = false;
 let lastStatus = null;
 
 const browserClients = new Set();
 
 /* =======================
-   WEBSOCKET
+   WEBSOCKET SERVER
 ======================= */
 const wss = new WebSocketServer({ server });
 
@@ -56,7 +55,7 @@ wss.on("connection", (ws) => {
       role = data.role;
 
       if (role === "device") {
-        console.log("✅ ESP32 identified");
+        console.log("✅ ESP32 online");
         deviceSocket = ws;
         deviceOnline = true;
         lastHeartbeat = Date.now();
@@ -64,10 +63,10 @@ wss.on("connection", (ws) => {
       }
 
       if (role === "browser") {
-        console.log("🌐 Browser identified");
+        console.log("🌐 Browser connected");
         browserClients.add(ws);
 
-        // Browser bekommt sofort Status
+        // Browser bekommt sofort aktuellen Zustand
         ws.send(JSON.stringify({
           type: "device",
           online: deviceOnline
@@ -80,10 +79,9 @@ wss.on("connection", (ws) => {
           }));
         }
 
-        // Streaming aktivieren
+        // Streaming einschalten
         enableStreaming();
       }
-
       return;
     }
 
@@ -97,7 +95,7 @@ wss.on("connection", (ws) => {
     if (data.type === "status" && role === "device") {
       lastStatus = data.payload;
 
-      // NICHT ins Log schreiben (Datensparen!)
+      // NICHT loggen → Datensparen
       broadcastToBrowsers({
         type: "status",
         payload: data.payload
@@ -105,12 +103,11 @@ wss.on("connection", (ws) => {
       return;
     }
 
-    /* ===== COMMANDS FROM BROWSER ===== */
+    /* ===== COMMANDS ===== */
     if (data.type === "command" && role === "browser") {
       if (!deviceSocket) return;
 
-      console.log("➡️ Command to ESP32:", data.command);
-
+      console.log("➡️ Heater command:", data.command);
       deviceSocket.send(JSON.stringify({
         type: "command",
         command: data.command
@@ -154,14 +151,12 @@ setInterval(() => {
 ======================= */
 function enableStreaming() {
   if (!deviceSocket) return;
-  streamingEnabled = true;
   console.log("📡 Streaming ON");
   deviceSocket.send(JSON.stringify({ type: "stream_on" }));
 }
 
 function disableStreaming() {
   if (!deviceSocket) return;
-  streamingEnabled = false;
   console.log("📴 Streaming OFF");
   deviceSocket.send(JSON.stringify({ type: "stream_off" }));
 }
@@ -182,4 +177,3 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
-
