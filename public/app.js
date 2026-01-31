@@ -80,7 +80,7 @@ function applyStatus(data) {
   floorState = data.floor.state;
   tempFloor = data.floor.temp_current;
   floorTimerRemaining = data.floor.timer_remaining;   
-  floorTimerTotal = data.floor.Timer_Total;
+  floorTimerTotal = data.floor.timer_total;
   ntcFloorError = data.floor.ntc_error;
 
   heaterState = data.heater.state;
@@ -116,7 +116,7 @@ function updateUI() {
     heaterInfo.includes("FAILED") ? "info error" : "info";
 
   document.getElementById("floor_timer").textContent =
-    ${formatTime(floorTimerRemaining)} / ${formatTime(floorTimerTotal)};
+    `${formatTime(floorTimerRemaining)} / ${formatTime(floorTimerTotal)}`;
 }
 
 function setText(id, text, error) {
@@ -135,5 +135,6 @@ function formatTime(sec) {
   if (sec === undefined || sec === null) return "--:--";
   const m = Math.floor(sec / 60).toString().padStart(2, "0");
   const s = Math.floor(sec % 60).toString().padStart(2, "0");
-  return ${m}:${s};
+  return `${m}:${s}`;
 }
+
