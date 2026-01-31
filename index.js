@@ -51,66 +51,55 @@ wss.on("connection", (ws) => {
     }
 
     /* ===== IDENTIFY ===== */
-    if (data.type === "identify") {
-      role = data.role;
-      
-      if (role === "device") {
-        console.log("✅ ESP32 identified (resetting previous state)");
-      
-        // 🔥 ALTEN SOCKET HART ENTFERNEN
-       if (deviceSocket && deviceSocket !== ws) {
-          try {
-            deviceSocket.terminate();
-          } catch (err) {
-            console.warn("⚠️ Failed to terminate old device socket");
-          }
-        }
-      
-        deviceSocket = ws;
-        deviceOnline = true;
-        lastHeartbeat = Date.now();
-      
-        // 🔴 GANZ WICHTIG: Streaming-Zustand zurücksetzen
-        streamingEnabled = false;
-      
-        broadcastDeviceStatus();
-      
-        // ✅ Browser ist evtl. schon offen → Stream sofort wieder aktivieren
-        if (browserClients.size > 0) {
-          console.log("📡 Browser already connected → re-enable streaming");
-          enableStreaming();
-        }
+if (data.type === "identify") {
+  role = data.role;
+
+  if (role === "device") {
+    console.log("✅ ESP32 identified (resetting previous state)");
+
+    // alten Device-Socket sauber ersetzen
+    if (deviceSocket && deviceSocket !== ws) {
+      try {
+        deviceSocket.terminate();
+      } catch {
+        console.warn("⚠️ Failed to terminate old device socket");
       }
-
-        
-        if (browserClients.size > 0) {
-          console.log("📡 Browser already connected → re-enable streaming");
-          enableStreaming();
-        }
-      }
-
-      if (role === "browser") {
-        console.log("🌐 Browser connected");
-        browserClients.add(ws);
-
-        // Browser bekommt sofort aktuellen Zustand
-        ws.send(JSON.stringify({
-          type: "device",
-          online: deviceOnline
-        }));
-
-        if (lastStatus) {
-          ws.send(JSON.stringify({
-            type: "status",
-            payload: lastStatus
-          }));
-        }
-
-        // Streaming einschalten
-        enableStreaming();
-      }
-      return;
     }
+
+    deviceSocket = ws;
+    deviceOnline = true;
+    lastHeartbeat = Date.now();
+
+    broadcastDeviceStatus();
+
+    // 🔑 WICHTIG: Browser evtl. schon offen → Stream sofort starten
+    if (browserClients.size > 0) {
+      console.log("📡 Browser already connected → re-enable streaming");
+      enableStreaming();
+    }
+  }
+
+  if (role === "browser") {
+    console.log("🌐 Browser connected");
+    browserClients.add(ws);
+
+    ws.send(JSON.stringify({
+      type: "device",
+      online: deviceOnline
+    }));
+
+    if (lastStatus) {
+      ws.send(JSON.stringify({
+        type: "status",
+        payload: lastStatus
+      }));
+    }
+
+    enableStreaming();
+  }
+
+  return;
+}
 
     /* ===== HEARTBEAT ===== */
     if (data.type === "heartbeat" && role === "device") {
@@ -205,6 +194,7 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
 
 
