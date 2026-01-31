@@ -60,6 +60,11 @@ wss.on("connection", (ws) => {
         deviceOnline = true;
         lastHeartbeat = Date.now();
         broadcastDeviceStatus();
+        
+        if (browserClients.size > 0) {
+          console.log("📡 Browser already connected → re-enable streaming");
+          enableStreaming();
+        }
       }
 
       if (role === "browser") {
@@ -120,6 +125,7 @@ wss.on("connection", (ws) => {
       console.warn("❌ ESP32 disconnected");
       deviceSocket = null;
       deviceOnline = false;
+      streamingEnabled = false;   // 🔴 WICHTIG
       broadcastDeviceStatus();
     }
 
@@ -179,4 +185,5 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
