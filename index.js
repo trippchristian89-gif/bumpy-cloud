@@ -53,13 +53,33 @@ wss.on("connection", (ws) => {
     /* ===== IDENTIFY ===== */
     if (data.type === "identify") {
       role = data.role;
-
+      
       if (role === "device") {
-        console.log("✅ ESP32 online");
+        console.log("✅ ESP32 identified (resetting previous state)");
+      
+        // 🔥 ALTEN SOCKET HART ENTFERNEN
+        if (deviceSocket && deviceSocket !== ws) {
+          try {
+            deviceSocket.terminate();
+          } catch {}
+        }
+      
         deviceSocket = ws;
         deviceOnline = true;
         lastHeartbeat = Date.now();
+      
+        // 🔴 GANZ WICHTIG: Streaming-Zustand zurücksetzen
+        streamingEnabled = false;
+      
         broadcastDeviceStatus();
+      
+        // ✅ Browser ist evtl. schon offen → Stream sofort wieder aktivieren
+        if (browserClients.size > 0) {
+          console.log("📡 Browser already connected → re-enable streaming");
+          enableStreaming();
+        }
+      }
+
         
         if (browserClients.size > 0) {
           console.log("📡 Browser already connected → re-enable streaming");
@@ -183,6 +203,7 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
 
 
