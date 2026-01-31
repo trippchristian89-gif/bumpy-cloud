@@ -31,7 +31,7 @@ ws.onopen = () => {
 
   // 👉 Stream anfordern (ESP32 beginnt zu senden)
   ws.send(JSON.stringify({
-    stream: true
+    stream: "streaming_on"
   }));
 };
 
@@ -76,7 +76,7 @@ function stopHeater() {
 /* ===== Stream sauber beenden ===== */
 window.addEventListener("beforeunload", () => {
   ws.send(JSON.stringify({
-    stream: false
+    stream: "stream_off"
   }));
 });
 
@@ -177,6 +177,7 @@ function attachLongPress(buttonId, actionFn) {
 attachLongPress("btn_start", startHeater);
 
 attachLongPress("btn_stop", stopHeater);
+
 
 
 
