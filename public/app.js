@@ -116,7 +116,11 @@ function updateUI() {
     heaterInfo.includes("FAILED") ? "info error" : "info";
 
   document.getElementById("floor_timer").textContent =
-    `${formatTime(floorTimerRemaining)} / ${formatTime(floorTimerTotal)}`;
+    formatTime(floorTimerRemaining);
+   
+  document.getElementById("floor_timer_total").textContent =
+    formatTime(floorTimerTotal);
+   
 }
 
 function setText(id, text, error) {
@@ -137,4 +141,5 @@ function formatTime(sec) {
   const s = Math.floor(sec % 60).toString().padStart(2, "0");
   return `${m}:${s}`;
 }
+
 
