@@ -10,6 +10,7 @@ let heaterState = "OFF";
 let heaterInfo  = "";
 
 let floorTimerRemaining = 0;
+let floorTimerTotal = 0;
 
 let ntcBumpyError = false;
 let ntcFloorError = false;
@@ -78,7 +79,8 @@ function applyStatus(data) {
 
   floorState = data.floor.state;
   tempFloor = data.floor.temp_current;
-  floorTimerRemaining = data.floor.timer_remaining;
+  floorTimerRemaining = data.floor.timer_remaining;   
+  floorTimerTotal = data.floor.TimerTotal;
   ntcFloorError = data.floor.ntc_error;
 
   heaterState = data.heater.state;
@@ -97,3 +99,4 @@ function setOnline(isOnline) {
   el.textContent = isOnline ? "online" : "offline";
   el.className = "status " + (isOnline ? "online" : "offline");
 }
+
