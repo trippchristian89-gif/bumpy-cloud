@@ -16,6 +16,8 @@ let ntcBumpyError = false;
 let ntcFloorError = false;
 let ntcAirError   = false;
 
+let isOnline = false;
+
 /* =======================
    WEBSOCKET CLIENT
 ======================= */
@@ -40,7 +42,12 @@ ws.onmessage = (e) => {
   }
 
   if (data.type === "device") {
-    setOnline(data.online);
+     isOnline = data.online;
+     setOnline(data.online);
+
+     if (!isOnline) {
+        resetUI(); // Platzhalter
+     }
   }
 
   if (data.type === "status") {
@@ -74,6 +81,7 @@ function stopHeater() {
    STATUS MAPPING
 ======================= */
 function applyStatus(data) {
+    if (!isOnline) return; // ❗ keine alten Werte anzeigen
   tempBumpy = data.temp_bumpy;
   ntcBumpyError = data.ntc_bumpy_error;
 
@@ -103,6 +111,7 @@ function setOnline(isOnline) {
 // Update UI 
 
 function updateUI() {
+   if (!isOnline) return;
   setText("temp_bumpy", formatTemp(tempBumpy), ntcBumpyError);
   setText("floor_temp", formatTemp(tempFloor), ntcFloorError);
   setText("temp_air", formatTemp(tempAir), ntcAirError);
@@ -142,4 +151,17 @@ function formatTime(sec) {
   return `${m}:${s}`;
 }
 
+// reset UI 
+function resetUI() {
+  setText("temp_bumpy", "--.- °C", false);
+  setText("floor_temp", "--.- °C", false);
+  setText("temp_air", "--.- °C", false);
+
+  document.getElementById("floor_state").textContent = "--";
+  document.getElementById("heater_state").textContent = "--";
+  document.getElementById("heater_info").textContent = "";
+
+  document.getElementById("floor_timer").textContent = "--:--";
+  document.getElementById("floor_timer_total").textContent = "--:--";
+}
 
