@@ -54,25 +54,30 @@ wss.on("connection", (ws) => {
 if (data.type === "identify") {
   role = data.role;
 
-if (role === "device") {
-  console.log("✅ ESP32 identified");
+  if (role === "device") {
+  console.log("✅ ESP32 identified → full state reset");
 
-  // 🔥 alten Socket ggf. sauber beenden
+  // 🔥 alten Device-Socket hart beenden
   if (deviceSocket && deviceSocket !== ws) {
     try {
       deviceSocket.terminate();
     } catch {}
   }
 
+  // 🔴 HARTER RESET ALLER ESP-RELEVANTEN STATES
   deviceSocket = ws;
+  deviceOnline = true;
   lastHeartbeat = Date.now();
 
-  // 🔴 WICHTIG: Status IMMER neu an Browser senden
-  deviceOnline = true;
-  broadcastDeviceStatus(); // <<< DAS ist der Fix
+  // ⛔ WICHTIG: Streaming IMMER zuerst AUS
+  disableStreaming();
 
-  // Browser offen? → Streaming sofort aktivieren
+  // 📢 Browser IMMER über neuen Online-Status informieren
+  broadcastDeviceStatus();
+
+  // 📡 Streaming NUR neu aktivieren, wenn Browser da ist
   if (browserClients.size > 0) {
+    console.log("📡 Browser present → enable streaming");
     enableStreaming();
   }
 }
@@ -132,8 +137,10 @@ if (role === "device") {
   ws.on("close", () => {
     if (role === "device") {
       console.warn("❌ ESP32 disconnected");
+      
       deviceSocket = null;
       deviceOnline = false;
+      disableStreaming();
       broadcastDeviceStatus();
     }
 
@@ -192,6 +199,7 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
 
 
