@@ -134,15 +134,21 @@ if (data.type === "identify") {
     }
   });
 
-  ws.on("close", () => {
-    if (role === "device") {
-      console.warn("❌ ESP32 disconnected");
-      
-      deviceSocket = null;
-      deviceOnline = false;
-      disableStreaming();
-      broadcastDeviceStatus();
+ws.on("close", () => {
+  if (role === "device") {
+
+    // ❗ WICHTIG: nur reagieren, wenn DAS der aktuelle Device-Socket ist
+    if (ws !== deviceSocket) {
+      console.log("⚠️ Ignoring close of stale ESP32 socket");
+      return;
     }
+
+    console.warn("❌ ESP32 disconnected (active socket)");
+    deviceSocket = null;
+    deviceOnline = false;
+    disableStreaming();          
+    broadcastDeviceStatus();
+  }
 
     if (role === "browser") {
       console.log("🌐 Browser disconnected");
@@ -159,11 +165,12 @@ if (data.type === "identify") {
    HEARTBEAT WATCHDOG
 ======================= */
 setInterval(() => {
-  if (deviceOnline && Date.now() - lastHeartbeat > 15000) {
+  if (deviceSocket && deviceOnline && Date.now() - lastHeartbeat > 15000) {
     console.warn("⏱️ ESP32 heartbeat timeout");
 
     deviceOnline = false;
     deviceSocket = null;
+    disableStreaming();
     broadcastDeviceStatus();
   }
 }, 5000);
@@ -199,6 +206,7 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
 
 
