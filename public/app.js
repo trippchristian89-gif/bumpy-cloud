@@ -171,6 +171,29 @@ function resetUI() {
   document.getElementById("floor_timer_total").textContent = "--:--";
 }
 
+/* =======================
+   BUTTON BINDINGS
+======================= */
+window.addEventListener("DOMContentLoaded", () => {
+
+  const btnStart = document.getElementById("btn_start");
+  const btnStop  = document.getElementById("btn_stop");
+
+  if (btnStart) {
+    btnStart.addEventListener("click", () => {
+      console.log("🔥 UI Button START");
+      startHeater();
+    });
+  }
+
+  if (btnStop) {
+    btnStop.addEventListener("click", () => {
+      console.log("🧊 UI Button STOP");
+      stopHeater();
+    });
+  }
+
+});
 
 
 
