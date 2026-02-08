@@ -64,6 +64,9 @@ ws.onclose = () => {
    HEATER COMMANDS
 ======================= */
 function startHeater() { 
+   
+   console.log("🔥 UI: heater_start clicked");
+   
   ws.send(JSON.stringify({
     type: "command",
     command: "heater_start"
@@ -164,6 +167,7 @@ function resetUI() {
   document.getElementById("floor_timer").textContent = "--:--";
   document.getElementById("floor_timer_total").textContent = "--:--";
 }
+
 
 
 
