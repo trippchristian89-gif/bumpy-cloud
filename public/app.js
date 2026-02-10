@@ -108,6 +108,12 @@ function applyStatus(data) {
   tempAir = data.heater.temp_air;
   ntcAirError = data.heater.ntc_air_error;
 
+  // GPS
+   gpsFix  = data.gps.fix;
+   gpsLat  = data.gps.lat;
+   gpsLon  = data.gps.lon;
+   gpsSats = data.gps.sats;
+
   updateUI();
 }
 
@@ -141,6 +147,23 @@ function updateUI() {
    
   document.getElementById("floor_timer_total").textContent =
     formatTime(floorTimerTotal);
+
+   // GPS Anzeige
+   const gpsStatusEl = document.getElementById("gps_status");
+   const gpsCoordsEl = document.getElementById("gps_coords");
+   
+   if (!isOnline) {
+     gpsStatusEl.textContent = "--";
+     gpsCoordsEl.textContent = "--";
+   } else if (gpsFix) {
+     gpsStatusEl.textContent = FIX (${gpsSats} sats);
+     gpsCoordsEl.textContent =
+       ${gpsLat.toFixed(6)}, ${gpsLon.toFixed(6)};
+   } else {
+     gpsStatusEl.textContent = "NO FIX (last known)";
+     gpsCoordsEl.textContent =
+       ${gpsLat.toFixed(6)}, ${gpsLon.toFixed(6)};
+   }
    
 }
 
@@ -175,6 +198,9 @@ function resetUI() {
 
   document.getElementById("floor_timer").textContent = "--:--";
   document.getElementById("floor_timer_total").textContent = "--:--";
+
+   document.getElementById("gps_status").textContent = "--";
+   document.getElementById("gps_coords").textContent = "--";
 }
 
 /* =======================
@@ -200,6 +226,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
 });
+
 
 
 
