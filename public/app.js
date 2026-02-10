@@ -18,6 +18,12 @@ let ntcAirError   = false;
 
 let isOnline = false;
 
+//GPS
+let gpsFix = false;
+let gpsLat = null;
+let gpsLon = null;
+let gpsSats = 0;
+
 /* =======================
    WEBSOCKET CLIENT
 ======================= */
@@ -194,6 +200,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
 });
+
 
 
 
