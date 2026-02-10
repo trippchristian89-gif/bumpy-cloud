@@ -160,7 +160,7 @@ function updateUI() {
      gpsCoordsEl.textContent =
        `${gpsLat.toFixed(6)}, ${gpsLon.toFixed(6)}`;
    } else {
-     gpsStatusEl.textContent = `"NO FIX (last known)"`;
+     gpsStatusEl.textContent = "NO FIX (last known)";
      gpsCoordsEl.textContent =
        `${gpsLat.toFixed(6)}, ${gpsLon.toFixed(6)}`;
    }
@@ -226,6 +226,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
 });
+
 
 
 
