@@ -243,7 +243,7 @@ window.addEventListener("DOMContentLoaded", () => {
   map = L.map("map", {
     zoomControl: true,
     attributionControl: false
-  }).setView([50.8070, 8.7700], 13); // Marburg
+  }).setView([50.8103, 8.7749], 13); // Marburg
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19
@@ -278,6 +278,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 }   
+
 
 
 
