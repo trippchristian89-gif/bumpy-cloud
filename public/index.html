@@ -1,5 +1,16 @@
 <!DOCTYPE html>
 <html>
+	
+<!-- Leaflet (OpenStreetMap) -->
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  defer
+></script>
+	
 	<head>
 	  <meta charset="utf-8">
 	  <meta name="viewport"
@@ -89,10 +100,23 @@
 	  </div>
 	</div>
 
+	<!-- GPS Map -->
+<div class="box">
+  <div class="row">
+    <span>Location</span>
+  </div>
+
+  <div
+    id="map"
+    style="height: 220px; border-radius: 12px;"
+  ></div>
+</div>
+
 <script src="/app.js"></script>
 </body>
 
 </html>
+
 
 
 
