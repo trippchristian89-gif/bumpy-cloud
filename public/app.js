@@ -250,7 +250,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }).addTo(map);
 
   // Platzhalter-Marker (wird später ersetzt)
-  gpsMarker = L.circleMarker([50.8070, 8.7700], {
+  gpsMarker = L.circleMarker([50.8103, 8.7749], {
     radius: 8,
     color: "#f97316",      // orange
     fillColor: "#f97316",
@@ -278,6 +278,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 }   
+
 
 
 
