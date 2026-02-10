@@ -108,11 +108,13 @@ function applyStatus(data) {
   tempAir = data.heater.temp_air;
   ntcAirError = data.heater.ntc_air_error;
 
-  // GPS
-   gpsFix  = data.gps.fix;
-   gpsLat  = data.gps.lat;
-   gpsLon  = data.gps.lon;
-   gpsSats = data.gps.sats;
+   // GPS
+gpsFix  = data.gps.fix;
+gpsLat  = data.gps.lat;
+gpsLon  = data.gps.lon;
+gpsSats = data.gps.sats;
+
+updateMapMarker();
 
   updateUI();
 }
@@ -255,6 +257,29 @@ window.addEventListener("DOMContentLoaded", () => {
     fillOpacity: 0.9
   }).addTo(map);
 });
+
+// marker update
+   function updateMapMarker() {
+  if (!map || !gpsMarker) return;
+  if (gpsLat === null || gpsLon === null) return;
+
+  gpsMarker.setLatLng([gpsLat, gpsLon]);
+
+  // Farbe je nach Fix
+  if (gpsFix) {
+    gpsMarker.setStyle({
+      color: "#16a34a",      // grün
+      fillColor: "#16a34a"
+    });
+  } else {
+    gpsMarker.setStyle({
+      color: "#f97316",      // orange
+      fillColor: "#f97316"
+    });
+  }
+}   
+});
+
 
 
 
