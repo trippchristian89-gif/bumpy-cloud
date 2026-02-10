@@ -227,6 +227,35 @@ window.addEventListener("DOMContentLoaded", () => {
 
 });
 
+   /* =======================
+   MAP INIT
+======================= */
+
+let map;
+let gpsMarker;
+
+window.addEventListener("DOMContentLoaded", () => {
+  map = L.map("map", {
+    zoomControl: true,
+    attributionControl: false
+  }).setView([50.8070, 8.7700], 13); // Marburg
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19
+  }).addTo(map);
+
+  // Platzhalter-Marker (wird später ersetzt)
+  gpsMarker = L.circleMarker([50.8070, 8.7700], {
+    radius: 8,
+    color: "#f97316",      // orange
+    fillColor: "#f97316",
+    fillOpacity: 0.9
+  }).addTo(map);
+});
+
+
+
+
 
 
 
