@@ -113,7 +113,7 @@ if (data.type === "identify") {
     /* ===== STATUS ===== */
     if (data.type === "status" && role === "device") {
       lastStatus = data.payload;
-
+      /*
       if (data.payload.gps) {
         console.log(
           "📍 GPS from ESP32:",
@@ -123,7 +123,7 @@ if (data.type === "identify") {
           "Sats:",
           data.payload.gps.sats
         );
-      }
+      } */
 
       // NICHT loggen → Datensparen
       broadcastToBrowsers({
@@ -217,6 +217,7 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
 
 
