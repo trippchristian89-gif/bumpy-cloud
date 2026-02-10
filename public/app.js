@@ -156,13 +156,13 @@ function updateUI() {
      gpsStatusEl.textContent = "--";
      gpsCoordsEl.textContent = "--";
    } else if (gpsFix) {
-     gpsStatusEl.textContent = FIX (${gpsSats} sats);
+     gpsStatusEl.textContent = `FIX (${gpsSats} sats)`;
      gpsCoordsEl.textContent =
-       ${gpsLat.toFixed(6)}, ${gpsLon.toFixed(6)};
+       `${gpsLat.toFixed(6)}, ${gpsLon.toFixed(6)}`;
    } else {
-     gpsStatusEl.textContent = "NO FIX (last known)";
+     gpsStatusEl.textContent = `"NO FIX (last known)"`;
      gpsCoordsEl.textContent =
-       ${gpsLat.toFixed(6)}, ${gpsLon.toFixed(6)};
+       `${gpsLat.toFixed(6)}, ${gpsLon.toFixed(6)}`;
    }
    
 }
@@ -226,6 +226,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
 });
+
 
 
 
