@@ -148,6 +148,8 @@ function updateUI() {
   document.getElementById("floor_timer_total").textContent =
     formatTime(floorTimerTotal);
 
+
+   /*
    // GPS Anzeige
    const gpsStatusEl = document.getElementById("gps_status");
    const gpsCoordsEl = document.getElementById("gps_coords");
@@ -164,7 +166,7 @@ function updateUI() {
      gpsCoordsEl.textContent =
        `${gpsLat.toFixed(6)}, ${gpsLon.toFixed(6)}`;
    }
-   
+   */
 }
 
 function setText(id, text, error) {
@@ -198,9 +200,10 @@ function resetUI() {
 
   document.getElementById("floor_timer").textContent = "--:--";
   document.getElementById("floor_timer_total").textContent = "--:--";
-
+/*
    document.getElementById("gps_status").textContent = "--";
    document.getElementById("gps_coords").textContent = "--";
+   */
 }
 
 /* =======================
@@ -252,6 +255,7 @@ window.addEventListener("DOMContentLoaded", () => {
     fillOpacity: 0.9
   }).addTo(map);
 });
+
 
 
 
