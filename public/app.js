@@ -136,7 +136,16 @@ function updateUI() {
   //setText("floor_temp", formatTemp(tempFloor), ntcFloorError);
   setText("temp_air", formatTemp(tempAir), ntcAirError);
 
-  document.getElementById("floor_state").textContent = floorState;
+  //document.getElementById("floor_state").textContent = floorState;
+  const floorStateEl = document.getElementById("floor_state");
+
+   if (ntcFloorError) {
+     floorStateEl.textContent = "ERROR";
+     floorStateEl.style.color = "#c53030";
+   } else {
+     floorStateEl.textContent = floorState;
+     floorStateEl.style.color = "";
+   }
   document.getElementById("heater_state").textContent = heaterState;
 
   const infoEl = document.getElementById("heater_info");
@@ -278,6 +287,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 }   
+
 
 
 
