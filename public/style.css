@@ -92,20 +92,24 @@ button:active {
 }
 
 /* START */
-#btn_start {
+#btn_start,
+#btn_floor_start {
   background: #b7d8c0;
 }
 
-#btn_start:active {
+#btn_start:active,
+#btn_floor_start:active {
   background: #9fcbb0;
 }
 
 /* STOP */
-#btn_stop {
+#btn_stop,
+#btn_floor_stop {
   background: #e3b5b5;
 }
 
-#btn_stop:active {
+#btn_stop:active,
+#btn_floor_stop:active {
   background: #d99a9a;
 }
 
@@ -143,4 +147,5 @@ button:active {
   .controls button {
     font-size: 1.1rem;
   }
+
 }
