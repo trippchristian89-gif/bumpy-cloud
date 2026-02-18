@@ -2,7 +2,7 @@
    STATE
 ======================= */
 let tempBumpy = 0;
-let tempFloor = 0;
+//let tempFloor = 0;
 let tempAir   = 0;
 
 let floorState = "OFF";
@@ -98,10 +98,10 @@ function applyStatus(data) {
   ntcBumpyError = data.ntc_bumpy_error;
 
   floorState = data.floor.state;
-  tempFloor = data.floor.temp_current;
+  //tempFloor = data.floor.temp_current;
   floorTimerRemaining = data.floor.timer_remaining;   
   floorTimerTotal = data.floor.timer_total;
-  ntcFloorError = data.floor.ntc_error;
+  //ntcFloorError = data.floor.ntc_error;
 
   heaterState = data.heater.state;
   heaterInfo = data.heater.info || "";
@@ -133,7 +133,7 @@ function setOnline(isOnline) {
 function updateUI() {
    if (!isOnline) return;
   setText("temp_bumpy", formatTemp(tempBumpy), ntcBumpyError);
-  setText("floor_temp", formatTemp(tempFloor), ntcFloorError);
+  //setText("floor_temp", formatTemp(tempFloor), ntcFloorError);
   setText("temp_air", formatTemp(tempAir), ntcAirError);
 
   document.getElementById("floor_state").textContent = floorState;
@@ -278,6 +278,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 }   
+
 
 
 
