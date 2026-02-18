@@ -244,6 +244,17 @@ function resetUI() {
 ======================= */
 window.addEventListener("DOMContentLoaded", () => {
 
+   const btnFloorStart = document.getElementById("btn_floor_start");
+   const btnFloorStop  = document.getElementById("btn_floor_stop");
+   
+   if (btnFloorStart) {
+     btnFloorStart.addEventListener("click", startFloor);
+   }
+   
+   if (btnFloorStop) {
+     btnFloorStop.addEventListener("click", stopFloor);
+   }
+
   const btnStart = document.getElementById("btn_start");
   const btnStop  = document.getElementById("btn_stop");
 
@@ -309,6 +320,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 }   
+
 
 
 
