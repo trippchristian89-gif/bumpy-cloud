@@ -67,8 +67,30 @@ ws.onclose = () => {
 };
 
 /* =======================
-   HEATER COMMANDS
+   HEATER floorheating COMMANDS
 ======================= */
+function startFloor() {
+   
+   console.log("UI: floorheating_start clicked");
+   
+  ws.send(JSON.stringify({
+    type: "command",
+    command: "floor_start"
+  }));
+}
+
+function stopFloor() {
+
+     console.log("UI: floorheating_stop clicked");
+   
+  ws.send(JSON.stringify({
+    type: "command",
+    command: "floor_stop"
+  }));
+}
+
+
+
 function startHeater() { 
    
    console.log("UI: heater_start clicked");
@@ -287,6 +309,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 }   
+
 
 
 
