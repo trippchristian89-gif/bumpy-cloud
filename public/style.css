@@ -132,6 +132,13 @@ button:active {
   color: #c53030;
 }
 
+/* Camper Bild Styling */
+.hero-image img {
+  width: 100%;
+  display: block;
+  border-radius: 8px;
+}
+
 /* ===== MOBILE ===== */
 @media (max-width: 600px) {
   .panel {
@@ -149,3 +156,4 @@ button:active {
   }
 
 }
+
