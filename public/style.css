@@ -1,34 +1,29 @@
-/* ===== GLOBAL RESET ===== */
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }
 
-/* ===== BODY ===== */
 body {
   background: #f4f1e8;
   font-family: -apple-system, BlinkMacSystemFont,
-   "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-weight: 500;
   color: #222;
 }
 
-/* ===== PANEL ===== */
 .panel {
   width: 360px;
   margin: 0 auto;
   padding: 12px;
 }
 
-/* ===== BOX ===== */
 .box {
   background: #fffaf2;
   border: 1px solid #d8d2c2;
@@ -38,7 +33,6 @@ body {
   box-shadow: 0 0 10px rgba(200, 120, 40, 0.22);
 }
 
-/* ===== ROWS ===== */
 .row {
   display: flex;
   justify-content: space-between;
@@ -69,7 +63,6 @@ hr {
   margin: 8px 0;
 }
 
-/* ===== CONTROLS ===== */
 .controls {
   display: flex;
   gap: 12px;
@@ -91,32 +84,14 @@ button:active {
   box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.15);
 }
 
-/* START */
 #btn_start,
 #btn_floor_start {
   background: #b7d8c0;
 }
 
-#btn_start:active,
-#btn_floor_start:active {
-  background: #9fcbb0;
-}
-
-/* STOP */
 #btn_stop,
 #btn_floor_stop {
   background: #e3b5b5;
-}
-
-#btn_stop:active,
-#btn_floor_stop:active {
-  background: #d99a9a;
-}
-
-/* ===== STATUS ===== */
-.bumpy-logo {
-  height: 22px;
-  opacity: 0.85;
 }
 
 .status {
@@ -132,21 +107,25 @@ button:active {
   color: #c53030;
 }
 
-/* Camper Bild Styling */
-.hero-image img {
-  width: 100%;
-  display: block;
-  border-radius: 8px;
+/* 🔥 NEU: Bild volle Breite ohne Box */
+.hero-image {
+  margin-bottom: 14px;
 }
 
-/* ===== MOBILE ===== */
+.hero-image img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
 @media (max-width: 600px) {
   .panel {
-    width: 100%;             /* volle Displaybreite */
+    width: 100%;
     max-width: none;
     padding: 12px;
   }
-  
+
   .temp {
     font-size: 1.3rem;
   }
@@ -154,6 +133,4 @@ button:active {
   .controls button {
     font-size: 1.1rem;
   }
-
 }
-
