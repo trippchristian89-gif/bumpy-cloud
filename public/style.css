@@ -154,7 +154,7 @@ Kein Hintergrund, kein Rahmen
 ===================================================== */
 
 .hero-image {
-margin-bottom: var(--spacing);
+margin: 2px 0 2px 0;   /* 🔥 1/4 des globalen Spacing (8px → 2px) */
 }
 
 .hero-image img {
