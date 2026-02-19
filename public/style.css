@@ -1,140 +1,184 @@
+/* =====================================================
+BUMPY – GLOBAL LAYOUT SYSTEM
+Saubere, zentrale Abstandssteuerung
+===================================================== */
+
+:root {
+--spacing: 8px;          /* 🔧 Globaler vertikaler Abstand */
+--panel-padding: 12px;   /* Innenabstand der Hauptfläche */
+--box-radius: 8px;
+}
+
+/* =====================================================
+RESET
+===================================================== */
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-}
+  }
 
 html,
 body {
-  margin: 0;
-  padding: 0;
+margin: 0;
+padding: 0;
 }
+
+/* =====================================================
+BODY
+===================================================== */
 
 body {
-  background: #f4f1e8;
-  font-family: -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  font-weight: 500;
-  color: #222;
+background: #f4f1e8;
+font-family: -apple-system, BlinkMacSystemFont,
+"Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+font-weight: 500;
+color: #222;
 }
+
+/* =====================================================
+PANEL (Hauptcontainer)
+===================================================== */
 
 .panel {
-  width: 360px;
-  margin: 0 auto;
-  padding: 12px;
+width: 360px;
+margin: 0 auto;
+padding: var(--panel-padding);
 }
+
+/* =====================================================
+BOXEN
+===================================================== */
 
 .box {
-  background: #fffaf2;
-  border: 1px solid #d8d2c2;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 14px;
-  box-shadow: 0 0 10px rgba(200, 120, 40, 0.22);
+background: #fffaf2;
+border: 1px solid #d8d2c2;
+border-radius: var(--box-radius);
+padding: 12px;
+margin-bottom: var(--spacing);
+box-shadow: 0 0 10px rgba(200, 120, 40, 0.22);
 }
 
+/* =====================================================
+ROWS & TEXT
+===================================================== */
+
 .row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+display: flex;
+justify-content: space-between;
+align-items: center;
 }
 
 .small {
-  font-size: 0.85em;
-  color: #555;
+font-size: 0.85em;
+color: #555;
 }
 
 .temp {
-  color: #2b6cb0;
+color: #2b6cb0;
 }
 
 .info {
-  min-height: 1.2em;
-  font-size: 0.9em;
+min-height: 1.2em;
+font-size: 0.9em;
 }
 
 .info.error {
-  color: #c53030;
+color: #c53030;
 }
 
 hr {
-  border: none;
-  border-top: 1px dashed #ccc;
-  margin: 8px 0;
+border: none;
+border-top: 1px dashed #ccc;
+margin: 8px 0;
 }
 
+/* =====================================================
+BUTTON CONTROLS
+===================================================== */
+
 .controls {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
+display: flex;
+gap: 12px;
+margin-bottom: var(--spacing);
 }
 
 button {
-  flex: 1;
-  padding: 18px 14px;
-  font-size: 18px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  min-height: 56px;
+flex: 1;
+padding: 18px 14px;
+font-size: 18px;
+border-radius: var(--box-radius);
+border: none;
+cursor: pointer;
+min-height: 56px;
 }
 
 button:active {
-  transform: translateY(1px);
-  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.15);
+transform: translateY(1px);
+box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.15);
 }
 
+/* START */
 #btn_start,
 #btn_floor_start {
-  background: #b7d8c0;
+background: #b7d8c0;
 }
 
+/* STOP */
 #btn_stop,
 #btn_floor_stop {
-  background: #e3b5b5;
+background: #e3b5b5;
 }
 
+/* =====================================================
+STATUS
+===================================================== */
+
 .status {
-  font-size: 0.8em;
-  font-weight: 600;
+font-size: 0.8em;
+font-weight: 600;
 }
 
 .status.online {
-  color: #2f855a;
+color: #2f855a;
 }
 
 .status.offline {
-  color: #c53030;
+color: #c53030;
 }
 
-/* 🔥 NEU: Bild volle Breite ohne Box */
+/* =====================================================
+HERO IMAGE (Camper)
+Kein Hintergrund, kein Rahmen
+===================================================== */
+
 .hero-image {
-  margin-bottom: -4px 0 0 4px 0;
-  padding: 0;
+margin-bottom: var(--spacing);
 }
 
 .hero-image img {
-  width: 100%;
-  height: auto;
-  display: block;
+width: 100%;
+height: auto;
+display: block;
 }
+
+/* =====================================================
+MOBILE
+===================================================== */
 
 @media (max-width: 600px) {
-  .panel {
-    width: 100%;
-    max-width: none;
-    padding: 12px;
-  }
-
-  .temp {
-    font-size: 1.3rem;
-  }
-
-  .controls button {
-    font-size: 1.1rem;
-  }
+.panel {
+width: 100%;
+max-width: none;
+padding: var(--panel-padding);
 }
 
+.temp {
+font-size: 1.3rem;
+}
 
-
-
+.controls button {
+font-size: 1.1rem;
+}
+}
