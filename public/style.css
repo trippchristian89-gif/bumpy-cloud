@@ -109,7 +109,7 @@ button:active {
 
 /* 🔥 NEU: Bild volle Breite ohne Box */
 .hero-image {
-  margin-bottom: 0 0 14px 0;
+  margin-bottom: 0 0 1px 0;
   padding: 0;
 }
 
@@ -134,4 +134,5 @@ button:active {
     font-size: 1.1rem;
   }
 }
+
 
