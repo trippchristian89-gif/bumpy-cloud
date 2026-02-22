@@ -17,7 +17,7 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, "0.0.0.0", () => {
   console.log("🚀 HTTP listening on", PORT);
 });
 
@@ -217,6 +217,7 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
 
 
