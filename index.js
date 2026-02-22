@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 /* ===== App ===== */
 const app = express();
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 8080;
 
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -217,6 +217,7 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
 
 
