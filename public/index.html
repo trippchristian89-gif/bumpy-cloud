@@ -1,18 +1,15 @@
 <!DOCTYPE html>
 <html>
 
-<link rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-  defer></script>
-
 <head>
   <meta charset="utf-8">
-  <meta name="viewport"
-    content="with=device-with, initial-scale=1">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BUMPY</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <link rel="stylesheet" href="/style.css">
   <link rel="icon" href="/icon-192.png">
@@ -20,24 +17,37 @@
 
   <meta name="apple-mobile-web-app-title" content="BUMPY">
   <meta name="application-name" content="BUMPY">
+
+  <style>
+    /* Nur Layout-Anpassung */
+    .panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px; /* gleicher Abstand überall */
+    }
+
+    .hero-image img {
+      width: 100%;
+      border-radius: 12px;
+      display: block;
+    }
+  </style>
 </head>
 
 <body>
 
   <div class="panel">
 
+    <!-- 🔥 Bild jetzt ganz oben -->
+    <div class="hero-image">
+      <img src="/camper.png" alt="Bumpy Camper">
+    </div>
 
     <div class="box footer">
       <div class="row footer-row">
         <span class="bumpy-text">BUMPY status</span>
         <span id="connection_status" class="status offline">offline</span>
       </div>
-    </div>
-
-    
-        <!-- 🔥 NEU: Bild ohne Box -->
-    <div class="hero-image">
-      <img src="/camper.png" alt="Bumpy Camper">
     </div>
 
     <div class="box">
@@ -93,6 +103,3 @@
 </body>
 
 </html>
-
-
-
