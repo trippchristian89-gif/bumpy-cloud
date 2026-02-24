@@ -30,6 +30,7 @@ let lastHeartbeat = 0;
 let lastStatus = null;
 
 const browserClients = new Set();
+let streamingActive = false;
 
 /* =======================
    WEBSOCKET SERVER
@@ -70,21 +71,14 @@ if (data.type === "identify") {
   lastHeartbeat = Date.now();
 
   // ⛔ WICHTIG: Streaming IMMER zuerst AUS
-  disableStreaming();
-
-  // 📢 Browser IMMER über neuen Online-Status informieren
-  broadcastDeviceStatus();
-
-  // 📡 Streaming NUR neu aktivieren, wenn Browser da ist
-  if (browserClients.size > 0) {
-    console.log("📡 Browser present → enable streaming");
-    enableStreaming();
+  disableStreaming();  // 📢 Browser IMMER über neuen Online-Status informieren
   }
 }
 
-  if (role === "browser") {
-    console.log("🌐 Browser connected");
-    browserClients.add(ws);
+    if (role === "browser") {
+      browserClients.add(ws);
+      enableStreaming();
+    }
 
     ws.send(JSON.stringify({
       type: "device",
@@ -157,6 +151,7 @@ ws.on("close", () => {
     console.warn("❌ ESP32 disconnected (active socket)");
     deviceSocket = null;
     deviceOnline = false;
+    streamingActive = false;
     disableStreaming();          
     broadcastDeviceStatus();
   }
@@ -181,6 +176,7 @@ setInterval(() => {
 
     deviceOnline = false;
     deviceSocket = null;
+    streamingActive = false;
     disableStreaming();
     broadcastDeviceStatus();
   }
@@ -190,13 +186,17 @@ setInterval(() => {
    STREAM CONTROL
 ======================= */
 function enableStreaming() {
-  if (!deviceSocket) return;
+  if (!deviceSocket || streamingActive) return;
+
+  streamingActive = true;
   console.log("📡 Streaming ON");
   deviceSocket.send(JSON.stringify({ type: "stream_on" }));
 }
 
 function disableStreaming() {
-  if (!deviceSocket) return;
+  if (!deviceSocket || !streamingActive) return;
+
+  streamingActive = false;
   console.log("📴 Streaming OFF");
   deviceSocket.send(JSON.stringify({ type: "stream_off" }));
 }
@@ -217,6 +217,7 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
 
 
