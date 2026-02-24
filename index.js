@@ -51,34 +51,30 @@ wss.on("connection", (ws) => {
       return;
     }
 
-    /* ===== IDENTIFY ===== */
+/* ===== IDENTIFY ===== */
 if (data.type === "identify") {
   role = data.role;
 
   if (role === "device") {
-  console.log("✅ ESP32 identified → full state reset");
+    console.log("✅ ESP32 identified → full state reset");
 
-  // 🔥 alten Device-Socket hart beenden
-  if (deviceSocket && deviceSocket !== ws) {
-    try {
-      deviceSocket.terminate();
-    } catch {}
-  }
-
-  // 🔴 HARTER RESET ALLER ESP-RELEVANTEN STATES
-  deviceSocket = ws;
-  deviceOnline = true;
-  lastHeartbeat = Date.now();
-
-  // ⛔ WICHTIG: Streaming IMMER zuerst AUS
-  disableStreaming();  // 📢 Browser IMMER über neuen Online-Status informieren
-  }
-}
-
-    if (role === "browser") {
-      browserClients.add(ws);
-      enableStreaming();
+    if (deviceSocket && deviceSocket !== ws) {
+      try {
+        deviceSocket.terminate();
+      } catch {}
     }
+
+    deviceSocket = ws;
+    deviceOnline = true;
+    lastHeartbeat = Date.now();
+    streamingActive = false;
+
+    broadcastDeviceStatus();
+  }
+
+  if (role === "browser") {
+    console.log("🌐 Browser connected");
+    browserClients.add(ws);
 
     ws.send(JSON.stringify({
       type: "device",
