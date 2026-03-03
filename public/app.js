@@ -220,52 +220,7 @@ window.addEventListener("DOMContentLoaded", () => {
     fillOpacity: 0.9
   }).addTo(map);
 
-  // ===== LOCATE BUTTON =====
-  const LocateControl = L.Control.extend({
-    options: { position: "bottomright" },
 
-    onAdd: function () {
-      const btn = L.DomUtil.create("button", "leaflet-control-zoom-in");
-
-      btn.style.cssText = `
-        width: 30px !important;
-        height: 30px !important;
-        min-width: 30px !important;
-        min-height: 30px !important;
-        max-width: 30px !important;
-        max-height: 30px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        background: #fff !important;
-        line-height: normal !important;
-        font-size: 0 !important;
-      `;
-       
-      btn.title = "Zu meinem Standort";
-      btn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25"
-             viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <line x1="12" y1="2"  x2="12" y2="6"/>
-          <line x1="12" y1="18" x2="12" y2="22"/>
-          <line x1="2"  y1="12" x2="6"  y2="12"/>
-          <line x1="18" y1="12" x2="22" y2="12"/>
-        </svg>`;
-
-      L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation);
-      L.DomEvent.on(btn, "click", () => {
-        if (gpsLat !== null && gpsLon !== null) {
-          map.setView([gpsLat, gpsLon], 15, { animate: true });
-        }
-      });
-
-      return btn;
-    }
-  });
-
-  new LocateControl().addTo(map);
 });
 
 /* =======================
@@ -283,3 +238,7 @@ function updateMapMarker() {
     gpsMarker.setStyle({ color: "#f97316", fillColor: "#f97316" });
   }
 }
+
+
+
+
