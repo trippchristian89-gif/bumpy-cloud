@@ -19,11 +19,10 @@
   <meta name="application-name" content="BUMPY">
 
   <style>
-    /* Nur Layout-Anpassung */
     .panel {
       display: flex;
       flex-direction: column;
-      gap: 6px; /* gleicher Abstand überall */
+      gap: 6px;
     }
 
     .hero-image {
@@ -38,37 +37,15 @@
     }
 
     .hero-image-2 {
-      margin-top: 6px;      /* Abstand darüber */
-      margin-bottom: 8px;   /* Abstand darunter */
+      margin-top: 6px;
+      margin-bottom: 8px;
     }
-    
+
     .hero-image-2 img {
       width: 100%;
       border-radius: 12px;
       display: block;
     }
-
-    /* Locate Button in der Map */
-    .locate-btn {
-      width: 26px;
-      height: 26px;
-      background:#f0f0f0;
-      border: 2px solid rgba(0,0,0,0.2);
-      border-radius: 2px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #333;
-      padding: 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      transition: background 0.15s;
-    }
-
-    .locate-btn:hover {
-      background: #fff;
-    }
-
   </style>
 </head>
 
@@ -76,7 +53,6 @@
 
   <div class="panel">
 
-    <!-- 🔥 Bild jetzt ganz oben -->
     <div class="hero-image">
       <img src="/camper.png" alt="Bumpy Camper">
     </div>
@@ -130,8 +106,7 @@
       <button id="btn_start">Start</button>
       <button id="btn_stop">Stop</button>
     </div>
-    
-    <!-- 🔥 Zweites Bild über der Map -->
+
     <div class="hero-image-2">
       <img src="/camper2.png" alt="Bumpy Camper 2">
     </div>
@@ -146,9 +121,3 @@
 </body>
 
 </html>
-
-
-
-
-
-
