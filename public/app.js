@@ -52,7 +52,7 @@ ws.onmessage = (e) => {
      setOnline(data.online);
 
      if (!isOnline) {
-        resetUI(); // Platzhalter
+        resetUI();
      }
   }
 
@@ -70,74 +70,48 @@ ws.onclose = () => {
    HEATER floorheating COMMANDS
 ======================= */
 function startFloor() {
-   
    console.log("UI: floorheating_start clicked");
-   
-  ws.send(JSON.stringify({
-    type: "command",
-    command: "floor_start"
-  }));
+  ws.send(JSON.stringify({ type: "command", command: "floor_start" }));
 }
 
 function stopFloor() {
-
-     console.log("UI: floorheating_stop clicked");
-   
-  ws.send(JSON.stringify({
-    type: "command",
-    command: "floor_stop"
-  }));
+   console.log("UI: floorheating_stop clicked");
+  ws.send(JSON.stringify({ type: "command", command: "floor_stop" }));
 }
 
-
-
-function startHeater() { 
-   
+function startHeater() {
    console.log("UI: heater_start clicked");
-   
-  ws.send(JSON.stringify({
-    type: "command",
-    command: "heater_start"
-  }));
+  ws.send(JSON.stringify({ type: "command", command: "heater_start" }));
 }
 
 function stopHeater() {
-      
    console.log("UI: heater_stop clicked");
-   
-  ws.send(JSON.stringify({
-    type: "command",
-    command: "heater_stop"
-  }));
+  ws.send(JSON.stringify({ type: "command", command: "heater_stop" }));
 }
 
 /* =======================
    STATUS MAPPING
 ======================= */
 function applyStatus(data) {
-    if (!isOnline) return; // ❗ keine alten Werte anzeigen
+  if (!isOnline) return;
   tempBumpy = data.temp_bumpy;
   ntcBumpyError = data.ntc_bumpy_error;
 
   floorState = data.floor.state;
-  //tempFloor = data.floor.temp_current;
-  floorTimerRemaining = data.floor.timer_remaining;   
+  floorTimerRemaining = data.floor.timer_remaining;
   floorTimerTotal = data.floor.timer_total;
-  //ntcFloorError = data.floor.ntc_error;
 
   heaterState = data.heater.state;
   heaterInfo = data.heater.info || "";
   tempAir = data.heater.temp_air;
   ntcAirError = data.heater.ntc_air_error;
 
-   // GPS
-gpsFix  = data.gps.fix;
-gpsLat  = data.gps.lat;
-gpsLon  = data.gps.lon;
-gpsSats = data.gps.sats;
+  gpsFix  = data.gps.fix;
+  gpsLat  = data.gps.lat;
+  gpsLon  = data.gps.lon;
+  gpsSats = data.gps.sats;
 
-updateMapMarker();
-
+  updateMapMarker();
   updateUI();
 }
 
@@ -150,56 +124,28 @@ function setOnline(isOnline) {
   el.className = "status " + (isOnline ? "online" : "offline");
 }
 
-// Update UI 
-
 function updateUI() {
-   if (!isOnline) return;
+  if (!isOnline) return;
   setText("temp_bumpy", formatTemp(tempBumpy), ntcBumpyError);
-  //setText("floor_temp", formatTemp(tempFloor), ntcFloorError);
   setText("temp_air", formatTemp(tempAir), ntcAirError);
 
-  //document.getElementById("floor_state").textContent = floorState;
   const floorStateEl = document.getElementById("floor_state");
+  if (ntcFloorError) {
+    floorStateEl.textContent = "ERROR";
+    floorStateEl.style.color = "#c53030";
+  } else {
+    floorStateEl.textContent = floorState;
+    floorStateEl.style.color = "";
+  }
 
-   if (ntcFloorError) {
-     floorStateEl.textContent = "ERROR";
-     floorStateEl.style.color = "#c53030";
-   } else {
-     floorStateEl.textContent = floorState;
-     floorStateEl.style.color = "";
-   }
   document.getElementById("heater_state").textContent = heaterState;
 
   const infoEl = document.getElementById("heater_info");
   infoEl.textContent = heaterInfo || "";
-  infoEl.className =
-    heaterInfo.includes("FAILED") ? "info error" : "info";
+  infoEl.className = heaterInfo.includes("FAILED") ? "info error" : "info";
 
-  document.getElementById("floor_timer").textContent =
-    formatTime(floorTimerRemaining);
-   
-  document.getElementById("floor_timer_total").textContent =
-    formatTime(floorTimerTotal);
-
-
-   /*
-   // GPS Anzeige
-   const gpsStatusEl = document.getElementById("gps_status");
-   const gpsCoordsEl = document.getElementById("gps_coords");
-   
-   if (!isOnline) {
-     gpsStatusEl.textContent = "--";
-     gpsCoordsEl.textContent = "--";
-   } else if (gpsFix) {
-     gpsStatusEl.textContent = `FIX (${gpsSats} sats)`;
-     gpsCoordsEl.textContent =
-       `${gpsLat.toFixed(6)}, ${gpsLon.toFixed(6)}`;
-   } else {
-     gpsStatusEl.textContent = "NO FIX (last known)";
-     gpsCoordsEl.textContent =
-       `${gpsLat.toFixed(6)}, ${gpsLon.toFixed(6)}`;
-   }
-   */
+  document.getElementById("floor_timer").textContent = formatTime(floorTimerRemaining);
+  document.getElementById("floor_timer_total").textContent = formatTime(floorTimerTotal);
 }
 
 function setText(id, text, error) {
@@ -221,7 +167,6 @@ function formatTime(sec) {
   return `${m}:${s}`;
 }
 
-// reset UI 
 function resetUI() {
   setText("temp_bumpy", "--.- °C", false);
   setText("floor_temp", "--.- °C", false);
@@ -233,10 +178,6 @@ function resetUI() {
 
   document.getElementById("floor_timer").textContent = "--:--";
   document.getElementById("floor_timer_total").textContent = "--:--";
-/*
-   document.getElementById("gps_status").textContent = "--";
-   document.getElementById("gps_coords").textContent = "--";
-   */
 }
 
 /* =======================
@@ -244,40 +185,21 @@ function resetUI() {
 ======================= */
 window.addEventListener("DOMContentLoaded", () => {
 
-   const btnFloorStart = document.getElementById("btn_floor_start");
-   const btnFloorStop  = document.getElementById("btn_floor_stop");
-   
-   if (btnFloorStart) {
-     btnFloorStart.addEventListener("click", startFloor);
-   }
-   
-   if (btnFloorStop) {
-     btnFloorStop.addEventListener("click", stopFloor);
-   }
+  const btnFloorStart = document.getElementById("btn_floor_start");
+  const btnFloorStop  = document.getElementById("btn_floor_stop");
+  if (btnFloorStart) btnFloorStart.addEventListener("click", startFloor);
+  if (btnFloorStop)  btnFloorStop.addEventListener("click", stopFloor);
 
   const btnStart = document.getElementById("btn_start");
   const btnStop  = document.getElementById("btn_stop");
-
-  if (btnStart) {
-    btnStart.addEventListener("click", () => {
-      console.log("🔥 UI Button START");
-      startHeater();
-    });
-  }
-
-  if (btnStop) {
-    btnStop.addEventListener("click", () => {
-      console.log("🧊 UI Button STOP");
-      stopHeater();
-    });
-  }
+  if (btnStart) btnStart.addEventListener("click", () => { console.log("🔥 UI Button START"); startHeater(); });
+  if (btnStop)  btnStop.addEventListener("click",  () => { console.log("🧊 UI Button STOP");  stopHeater(); });
 
 });
 
-   /* =======================
+/* =======================
    MAP INIT
 ======================= */
-
 let map;
 let gpsMarker;
 
@@ -285,59 +207,63 @@ window.addEventListener("DOMContentLoaded", () => {
   map = L.map("map", {
     zoomControl: true,
     attributionControl: false
-  }).setView([50.8070, 8.7700], 13); // Marburg
+  }).setView([50.8070, 8.7700], 13);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19
   }).addTo(map);
 
-  // Platzhalter-Marker (wird später ersetzt)
   gpsMarker = L.circleMarker([50.8070, 8.7700], {
     radius: 8,
-    color: "#f97316",      // orange
+    color: "#f97316",
     fillColor: "#f97316",
     fillOpacity: 0.9
   }).addTo(map);
+
+  // ===== LOCATE BUTTON =====
+  const LocateControl = L.Control.extend({
+    options: { position: "bottomright" },
+
+    onAdd: function () {
+      const btn = L.DomUtil.create("button", "locate-btn");
+      btn.title = "Zu meinem Standort";
+      btn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <line x1="12" y1="2"  x2="12" y2="6"/>
+          <line x1="12" y1="18" x2="12" y2="22"/>
+          <line x1="2"  y1="12" x2="6"  y2="12"/>
+          <line x1="18" y1="12" x2="22" y2="12"/>
+        </svg>`;
+
+      L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation);
+      L.DomEvent.on(btn, "click", () => {
+        if (gpsLat !== null && gpsLon !== null) {
+          map.setView([gpsLat, gpsLon], 15, { animate: true });
+        }
+      });
+
+      return btn;
+    }
+  });
+
+  new LocateControl().addTo(map);
 });
 
-// marker update
-   function updateMapMarker() {
+/* =======================
+   MARKER UPDATE
+======================= */
+function updateMapMarker() {
   if (!map || !gpsMarker) return;
   if (gpsLat === null || gpsLon === null) return;
 
   gpsMarker.setLatLng([gpsLat, gpsLon]);
 
-  // Farbe je nach Fix
   if (gpsFix) {
-    gpsMarker.setStyle({
-      color: "#16a34a",      // grün
-      fillColor: "#16a34a"
-    });
+    gpsMarker.setStyle({ color: "#16a34a", fillColor: "#16a34a" });
   } else {
-    gpsMarker.setStyle({
-      color: "#f97316",      // orange
-      fillColor: "#f97316"
-    });
+    gpsMarker.setStyle({ color: "#f97316", fillColor: "#f97316" });
   }
-}   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
