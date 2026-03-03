@@ -227,16 +227,20 @@ window.addEventListener("DOMContentLoaded", () => {
     onAdd: function () {
       const btn = L.DomUtil.create("button", "leaflet-control-zoom-in");
 
-         btn.style.width     = "30px";
-         btn.style.height    = "30px";
-         btn.style.minWidth  = "30px";
-         btn.style.minHeight = "30px";
-         btn.style.maxWidth  = "30px";
-         btn.style.maxHeight      = "30px";
-      btn.style.display        = "flex";
-      btn.style.alignItems     = "center";
-      btn.style.justifyContent = "center";
-      btn.style.background     = "#fff";
+      btn.style.cssText = `
+        width: 30px !important;
+        height: 30px !important;
+        min-width: 30px !important;
+        min-height: 30px !important;
+        max-width: 30px !important;
+        max-height: 30px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: #fff !important;
+        line-height: normal !important;
+        font-size: 0 !important;
+      `;
        
       btn.title = "Zu meinem Standort";
       btn.innerHTML = `
@@ -279,7 +283,3 @@ function updateMapMarker() {
     gpsMarker.setStyle({ color: "#f97316", fillColor: "#f97316" });
   }
 }
-
-
-
-
