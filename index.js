@@ -1,4 +1,5 @@
 import express from "express";
+import mqtt from "mqtt";
 import { WebSocketServer } from "ws";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -12,10 +13,7 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 app.use(express.static(path.join(__dirname, "public")));
-
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
-});
+app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 
 const server = app.listen(PORT, "0.0.0.0", () => {
   console.log("🚀 HTTP listening on", PORT);
@@ -24,187 +22,152 @@ const server = app.listen(PORT, "0.0.0.0", () => {
 /* =======================
    GLOBAL STATE
 ======================= */
-let deviceSocket = null;
 let deviceOnline = false;
 let lastHeartbeat = 0;
 let lastStatus = null;
-
-const browserClients = new Set();
 let streamingActive = false;
 
+const browserClients = new Set();
+
 /* =======================
-   WEBSOCKET SERVER
+   MQTT BROKER CONNECTION
+   Mosquitto läuft lokal auf der Oracle VM:
+   sudo apt install mosquitto mosquitto-clients -y
+   Port: 1883 (intern), optional 8883 TLS
 ======================= */
-const wss = new WebSocketServer({ server });
+const mqttClient = mqtt.connect("mqtt://localhost:1883", {
+  clientId: "bumpy-server",
+  clean: true,
+  reconnectPeriod: 3000,
+});
 
-wss.on("connection", (ws) => {
-  console.log("🔌 WS connection");
+mqttClient.on("connect", () => {
+  console.log("✅ MQTT broker connected");
 
-  let role = "unknown"; // device | browser
+  mqttClient.subscribe("bumpy/identify",  { qos: 1 });
+  mqttClient.subscribe("bumpy/heartbeat", { qos: 0 });
+  mqttClient.subscribe("bumpy/status",    { qos: 0 });
+});
 
-  ws.on("message", (msg) => {
-    let data;
-    try {
-      data = JSON.parse(msg.toString());
-    } catch {
-      console.warn("⚠️ Invalid JSON");
-      return;
-    }
+mqttClient.on("error", (err) => console.error("❌ MQTT error:", err.message));
+mqttClient.on("reconnect", () => console.log("🔄 MQTT reconnecting..."));
 
-/* ===== IDENTIFY ===== */
-if (data.type === "identify") {
-  role = data.role;
+/* =======================
+   MQTT → LOGIK
+======================= */
+mqttClient.on("message", (topic, message) => {
+  let data;
+  try {
+    data = JSON.parse(message.toString());
+  } catch {
+    console.warn("⚠️ Invalid JSON on", topic);
+    return;
+  }
 
-  if (role === "device") {
-    console.log("✅ ESP32 identified → full state reset");
+  /* ===== IDENTIFY ===== */
+  if (topic === "bumpy/identify") {
+    if (data.role !== "device") return;
 
-    if (deviceSocket && deviceSocket !== ws) {
-      try {
-        deviceSocket.terminate();
-      } catch {}
-    }
-
-    deviceSocket = ws;
+    console.log("✅ ESP32 identified → state reset");
     deviceOnline = true;
     lastHeartbeat = Date.now();
     streamingActive = false;
 
-    broadcastDeviceStatus();
+    broadcastToBrowsers({ type: "device", online: true });
+    maybeEnableStreaming();
+    return;
   }
 
-  if (role === "browser") {
-    console.log("🌐 Browser connected");
-    browserClients.add(ws);
-
-    ws.send(JSON.stringify({
-      type: "device",
-      online: deviceOnline
-    }));
-
-    if (lastStatus) {
-      ws.send(JSON.stringify({
-        type: "status",
-        payload: lastStatus
-      }));
-    }
-
-    enableStreaming();
+  /* ===== HEARTBEAT ===== */
+  if (topic === "bumpy/heartbeat") {
+    lastHeartbeat = Date.now();
+    return;
   }
 
-  return;
-}
-
-    /* ===== HEARTBEAT ===== */
-    if (data.type === "heartbeat" && role === "device") {
-      lastHeartbeat = Date.now();
-      return;
-    }
-
-    /* ===== STATUS ===== */
-    if (data.type === "status" && role === "device") {
-      lastStatus = data.payload;
-      /*
-      if (data.payload.gps) {
-        console.log(
-          "📍 GPS from ESP32:",
-          data.payload.gps.fix ? "FIX" : "NO FIX",
-          data.payload.gps.lat,
-          data.payload.gps.lon,
-          "Sats:",
-          data.payload.gps.sats
-        );
-      } */
-
-      // NICHT loggen → Datensparen
-      broadcastToBrowsers({
-        type: "status",
-        payload: data.payload
-      });
-      return;
-    }
-
-    /* ===== COMMANDS ===== */
-    if (data.type === "command" && role === "browser") {
-      if (!deviceSocket) return;
-
-      console.log("➡️ Heater command:", data.command);
-      deviceSocket.send(JSON.stringify({
-        type: "command",
-        command: data.command
-      }));
-    }
-  });
-
-ws.on("close", () => {
-  if (role === "device") {
-
-    // ❗ WICHTIG: nur reagieren, wenn DAS der aktuelle Device-Socket ist
-    if (ws !== deviceSocket) {
-      console.log("⚠️ Ignoring close of stale ESP32 socket");
-      return;
-    }
-
-    console.warn("❌ ESP32 disconnected (active socket)");
-    deviceSocket = null;
-    deviceOnline = false;
-    streamingActive = false;
-    disableStreaming();          
-    broadcastDeviceStatus();
+  /* ===== STATUS ===== */
+  if (topic === "bumpy/status") {
+    lastStatus = data;
+    broadcastToBrowsers({ type: "status", payload: data });
+    return;
   }
-
-    if (role === "browser") {
-      console.log("🌐 Browser disconnected");
-      browserClients.delete(ws);
-
-      if (browserClients.size === 0) {
-        disableStreaming();
-      }
-    }
-  });
 });
 
 /* =======================
    HEARTBEAT WATCHDOG
 ======================= */
 setInterval(() => {
-  if (deviceSocket && deviceOnline && Date.now() - lastHeartbeat > 15000) {
+  if (deviceOnline && Date.now() - lastHeartbeat > 15000) {
     console.warn("⏱️ ESP32 heartbeat timeout");
-
     deviceOnline = false;
-    deviceSocket = null;
     streamingActive = false;
-    disableStreaming();
-    broadcastDeviceStatus();
+    mqttPublish("bumpy/stream", { active: false });
+    broadcastToBrowsers({ type: "device", online: false });
   }
 }, 5000);
 
 /* =======================
    STREAM CONTROL
 ======================= */
-function enableStreaming() {
-  if (!deviceSocket || streamingActive) return;
-
+function maybeEnableStreaming() {
+  if (!deviceOnline || streamingActive || browserClients.size === 0) return;
   streamingActive = true;
   console.log("📡 Streaming ON");
-  deviceSocket.send(JSON.stringify({ type: "stream_on" }));
+  mqttPublish("bumpy/stream", { active: true });
 }
 
 function disableStreaming() {
-  if (!deviceSocket || !streamingActive) return;
-
+  if (!streamingActive) return;
   streamingActive = false;
   console.log("📴 Streaming OFF");
-  deviceSocket.send(JSON.stringify({ type: "stream_off" }));
+  mqttPublish("bumpy/stream", { active: false });
 }
 
 /* =======================
-   BROADCAST
+   WEBSOCKET → BROWSER
+   Browser verbindet sich weiterhin per WebSocket
+   (kein MQTT im Browser nötig)
 ======================= */
-function broadcastDeviceStatus() {
-  broadcastToBrowsers({
-    type: "device",
-    online: deviceOnline
+const wss = new WebSocketServer({ server });
+
+wss.on("connection", (ws) => {
+  console.log("🌐 Browser connected");
+  browserClients.add(ws);
+
+  // Initialzustand senden
+  ws.send(JSON.stringify({ type: "device", online: deviceOnline }));
+  if (lastStatus) {
+    ws.send(JSON.stringify({ type: "status", payload: lastStatus }));
+  }
+
+  maybeEnableStreaming();
+
+  ws.on("message", (msg) => {
+    let data;
+    try {
+      data = JSON.parse(msg.toString());
+    } catch {
+      return;
+    }
+
+    // Browser → Command → MQTT → ESP32
+    if (data.type === "command") {
+      console.log("➡️ Command:", data.command);
+      mqttPublish("bumpy/command", { command: data.command });
+    }
   });
+
+  ws.on("close", () => {
+    console.log("🌐 Browser disconnected");
+    browserClients.delete(ws);
+    if (browserClients.size === 0) disableStreaming();
+  });
+});
+
+/* =======================
+   HELPERS
+======================= */
+function mqttPublish(topic, obj) {
+  mqttClient.publish(topic, JSON.stringify(obj), { qos: 1 });
 }
 
 function broadcastToBrowsers(obj) {
@@ -213,22 +176,3 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
