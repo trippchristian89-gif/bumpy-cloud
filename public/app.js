@@ -232,7 +232,11 @@ window.addEventListener("DOMContentLoaded", () => {
          btn.style.minWidth  = "36px";
          btn.style.minHeight = "36px";
          btn.style.maxWidth  = "36px";
-         btn.style.maxHeight = "36px";
+         btn.style.maxHeight      = "36px";
+      btn.style.display        = "flex";
+      btn.style.alignItems     = "center";
+      btn.style.justifyContent = "center";
+      btn.style.background     = "#fff";
        
       btn.title = "Zu meinem Standort";
       btn.innerHTML = `
