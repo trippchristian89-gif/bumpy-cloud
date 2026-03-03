@@ -219,8 +219,41 @@ window.addEventListener("DOMContentLoaded", () => {
     fillColor: "#f97316",
     fillOpacity: 0.9
   }).addTo(map);
+  // ===== LOCATE BUTTON =====
+  const LocateControl = L.Control.extend({
+    options: { position: "bottomright" },
+    onAdd: function () {
+      const container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
 
+      const btn = L.DomUtil.create("a", "", container);
+      btn.title = "Zu meinem Standort";
+      btn.href  = "#";
+      btn.style.cssText = `
+        width: 26px;
+        height: 26px;
+        line-height: 26px;
+        display: block;
+        text-align: center;
+        font-size: 14px;
+        cursor: pointer;
+        text-decoration: none;
+        color: black;
+      `;
+      btn.innerHTML = `&#8853;`;
 
+      L.DomEvent.on(btn, "click", L.DomEvent.preventDefault);
+      L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation);
+      L.DomEvent.on(btn, "click", () => {
+        if (gpsLat !== null && gpsLon !== null) {
+          map.setView([gpsLat, gpsLon], 15, { animate: true });
+        }
+      });
+
+      return container;
+    }
+  });
+
+  new LocateControl().addTo(map);
 });
 
 /* =======================
