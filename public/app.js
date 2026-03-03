@@ -225,15 +225,7 @@ window.addEventListener("DOMContentLoaded", () => {
     options: { position: "bottomright" },
 
     onAdd: function () {
-      const btn = L.DomUtil.create("button", "locate-btn");
-      btn.style.width       = "26px";
-      btn.style.height      = "26px";
-      btn.style.minWidth    = "26px";
-      btn.style.minHeight   = "26px";
-      btn.style.maxWidth    = "26px";
-      btn.style.maxHeight   = "26px";
-      btn.style.lineHeight  = "26px";
-      btn.style.borderRadius = "2px";
+      const btn = L.DomUtil.create("button", "leaflet-control-zoom-in");
       btn.title = "Zu meinem Standort";
       btn.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
