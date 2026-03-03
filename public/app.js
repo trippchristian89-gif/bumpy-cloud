@@ -240,7 +240,7 @@ window.addEventListener("DOMContentLoaded", () => {
        
       btn.title = "Zu meinem Standort";
       btn.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"
+        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25"
              viewBox="0 0 24 24" fill="none" stroke="currentColor"
              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/>
@@ -279,6 +279,7 @@ function updateMapMarker() {
     gpsMarker.setStyle({ color: "#f97316", fillColor: "#f97316" });
   }
 }
+
 
 
 
