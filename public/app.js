@@ -226,13 +226,14 @@ window.addEventListener("DOMContentLoaded", () => {
 
     onAdd: function () {
       const btn = L.DomUtil.create("button", "locate-btn");
-
-        btn.style.height    = "36px";
-        btn.style.minWidth  = "36px";
-        btn.style.minHeight = "36px";
-        btn.style.maxWidth  = "36px";
-        btn.style.maxHeight = "36px";
-       
+      btn.style.width       = "26px";
+      btn.style.height      = "26px";
+      btn.style.minWidth    = "26px";
+      btn.style.minHeight   = "26px";
+      btn.style.maxWidth    = "26px";
+      btn.style.maxHeight   = "26px";
+      btn.style.lineHeight  = "26px";
+      btn.style.borderRadius = "2px";
       btn.title = "Zu meinem Standort";
       btn.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
@@ -274,4 +275,3 @@ function updateMapMarker() {
     gpsMarker.setStyle({ color: "#f97316", fillColor: "#f97316" });
   }
 }
-
