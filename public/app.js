@@ -344,6 +344,9 @@ function openFullscreenMap(){
     mapFullscreen = null;
   }
 
+  const container = document.getElementById("mapFullscreenInner");
+  container.innerHTML = "";
+
   document.getElementById("mapFullscreen").classList.add("active");
 
   mapFullscreen = L.map("mapFullscreenInner", {
@@ -403,6 +406,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
 });
+
 
 
 
