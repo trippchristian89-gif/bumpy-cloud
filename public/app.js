@@ -376,6 +376,33 @@ const LocateControlFS = L.Control.extend({
 });
 new LocateControlFS().addTo(mapFullscreen);
 
+// Close Button (Fullscreen)
+const CloseControl = L.Control.extend({
+  options: { position: "topleft" },
+  onAdd: function () {
+
+    const container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+    const btn = L.DomUtil.create("a", "", container);
+
+    btn.href = "javascript:void(0)";
+    btn.innerHTML = "✕";
+    btn.style.cssText = `
+      width:26px;height:26px;line-height:26px;
+      display:block;text-align:center;
+      font-size:16px;text-decoration:none;color:black;
+    `;
+
+    L.DomEvent.on(btn, "click", (e) => {
+      L.DomEvent.stop(e);
+      document.getElementById("mapFullscreen").classList.remove("active");
+      if (mapFullscreen) mapFullscreen.remove();
+    });
+
+    return container;
+  }
+});
+new CloseControl().addTo(mapFullscreen);
+
   if (gpsLat && gpsLon){
     L.circleMarker([gpsLat,gpsLon],{
       radius:8,
@@ -386,18 +413,7 @@ new LocateControlFS().addTo(mapFullscreen);
   }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
 
-  const closeBtn = document.getElementById("closeFullscreen");
-
-  if (closeBtn) {
-    closeBtn.onclick = () => {
-      document.getElementById("mapFullscreen").classList.remove("active");
-      if (mapFullscreen) mapFullscreen.remove();
-    };
-  }
-
-});
 
 
 
