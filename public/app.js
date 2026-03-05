@@ -113,6 +113,9 @@ function applyStatus(data) {
 
   updateMapMarker();
   updateUI();
+  if (map2 && gpsLat !== null && gpsLon !== null) {
+     map2.setView([gpsLat, gpsLon], 15);
+   }
 }
 
 /* =======================
@@ -412,6 +415,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
