@@ -232,7 +232,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
       const btn = L.DomUtil.create("a", "", container);
       btn.title = "Zu meinem Standort";
-      btn.href  = "#";
+      btn.href = "javascript:void(0)";
       btn.style.cssText = `
         width: 26px; height: 26px; line-height: 26px;
         display: block; text-align: center;
@@ -333,5 +333,6 @@ function updateMapMarker() {
     if (dx > 0 && currentPage === 2) goToPage(1);
   }, { passive: true });
 })();
+
 
 
