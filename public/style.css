@@ -188,12 +188,12 @@ background: #e3b5b5;
 
 /* OFF Zustand */
 .switch.alarm .slider {
-  background-color: #f2c7c7;
+  background-color: #f6d6d6;
 }
 
 /* ON Zustand */
 .switch.alarm input:checked + .slider {
-  background-color: #7a1e1e;
+  background-color: #d62828;
 }
 
 /* =====================================================
@@ -269,6 +269,7 @@ MAP FULLSCREEN
   width:100%;
   height:100%;
 }
+
 
 
 
