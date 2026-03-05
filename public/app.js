@@ -203,45 +203,27 @@ window.addEventListener("DOMContentLoaded", () => {
   if (btnStart) btnStart.addEventListener("click", () => { console.log("🔥 UI Button START"); startHeater(); });
   if (btnStop)  btnStop.addEventListener("click",  () => { console.log("🧊 UI Button STOP");  stopHeater(); });
 
-   const btnGpsTracking = document.getElementById("btn_gps_tracking");
-   const btnGpsAlarm = document.getElementById("btn_gps_alarm");
-   const btnPirAlarm = document.getElementById("btn_pir_alarm");
+   const switches = {
+     btn_gps_tracking: "gps_tracking",
+     btn_gps_alarm: "gps_alarm",
+     btn_pir_alarm: "pir_alarm"
+   };
    
-   if (btnGpsTracking) {
-     btnGpsTracking.addEventListener("click", () => {
-       gpsTrackingEnabled = !gpsTrackingEnabled;
-       btnGpsTracking.textContent = gpsTrackingEnabled ? "ON" : "OFF";
+   Object.entries(switches).forEach(([id, cmd]) => {
    
-       ws.send(JSON.stringify({
-         type: "command",
-         command: gpsTrackingEnabled ? "gps_tracking_on" : "gps_tracking_off"
-       }));
-     });
-   }
+     const el = document.getElementById(id);
+     if (!el) return;
    
-   if (btnGpsAlarm) {
-     btnGpsAlarm.addEventListener("click", () => {
-       gpsAlarmEnabled = !gpsAlarmEnabled;
-       btnGpsAlarm.textContent = gpsAlarmEnabled ? "ON" : "OFF";
+     el.addEventListener("change", () => {
    
        ws.send(JSON.stringify({
          type: "command",
-         command: gpsAlarmEnabled ? "gps_alarm_on" : "gps_alarm_off"
+         command: `${cmd}_${el.checked ? "on" : "off"}`
        }));
-     });
-   }
    
-   if (btnPirAlarm) {
-     btnPirAlarm.addEventListener("click", () => {
-       pirAlarmEnabled = !pirAlarmEnabled;
-       btnPirAlarm.textContent = pirAlarmEnabled ? "ON" : "OFF";
-   
-       ws.send(JSON.stringify({
-         type: "command",
-         command: pirAlarmEnabled ? "pir_alarm_on" : "pir_alarm_off"
-       }));
      });
-   }
+   
+   });
 });
 
 /* =======================
@@ -467,6 +449,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
