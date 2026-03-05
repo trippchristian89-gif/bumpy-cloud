@@ -215,7 +215,7 @@ window.addEventListener("DOMContentLoaded", () => {
   map2 = L.map("map2", {
     zoomControl: true,
     attributionControl: false
-  })..setView([50.8070, 8.7700], 13);
+  }).setView([50.8070, 8.7700], 13);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19
@@ -415,6 +415,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
