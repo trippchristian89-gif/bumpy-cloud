@@ -200,61 +200,8 @@ window.addEventListener("DOMContentLoaded", () => {
 /* =======================
    MAP INIT
 ======================= */
-let map;
-let gpsMarker;
-
-window.addEventListener("DOMContentLoaded", () => {
-  map = L.map("map", {
-    zoomControl: true,
-    attributionControl: false
-  }).setView([50.8070, 8.7700], 13);
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19
-  }).addTo(map);
-
-  gpsMarker = L.circleMarker([50.8070, 8.7700], {
-    radius: 8,
-    color: "#f97316",
-    fillColor: "#f97316",
-    fillOpacity: 0.9
-  }).addTo(map);
-  // ===== LOCATE BUTTON =====
-  const LocateControl = L.Control.extend({
-    options: { position: "bottomright" },
-    onAdd: function () {
-      const container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
-
-      const btn = L.DomUtil.create("a", "", container);
-      btn.title = "Zu meinem Standort";
-      btn.href  = "#";
-      btn.style.cssText = `
-        width: 26px;
-        height: 26px;
-        line-height: 26px;
-        display: block;
-        text-align: center;
-        font-size: 14px;
-        cursor: pointer;
-        text-decoration: none;
-        color: black;
-      `;
-      btn.innerHTML = `&#8853;`;
-
-      L.DomEvent.on(btn, "click", L.DomEvent.preventDefault);
-      L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation);
-      L.DomEvent.on(btn, "click", () => {
-        if (gpsLat !== null && gpsLon !== null) {
-          map.setView([gpsLat, gpsLon], 15, { animate: true });
-        }
-      });
-
-      return container;
-    }
-  });
-
-  new LocateControl().addTo(map);
-});
+let map = null;
+let gpsMarker = null;
 
 /* =======================
    MAP 2 INIT (Page 2)
@@ -303,26 +250,50 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
   new LocateControl2().addTo(map2);
+
+  // ===== FULLSCREEN BUTTON =====
+  const FullscreenControl = L.Control.extend({
+    options: { position: "topleft" },
+    onAdd: function () {
+      const container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+      const btn = L.DomUtil.create("a", "", container);
+      btn.title = "Vollbild";
+      btn.href  = "#";
+      btn.style.cssText = `
+        width: 26px; height: 26px; line-height: 26px;
+        display: block; text-align: center;
+        font-size: 16px; cursor: pointer;
+        text-decoration: none; color: black;
+      `;
+      btn.innerHTML = "&#x26F6;";
+
+      L.DomEvent.on(btn, "click", L.DomEvent.preventDefault);
+      L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation);
+      L.DomEvent.on(btn, "click", () => {
+        const container = document.getElementById("map2Container");
+        const isFs = container.classList.toggle("fullscreen");
+        btn.innerHTML = isFs ? "&#x2715;" : "&#x26F6;";
+        setTimeout(() => map2.invalidateSize(), 50);
+      });
+      return container;
+    }
+  });
+  new FullscreenControl().addTo(map2);
 });
 
 /* =======================
    MARKER UPDATE
 ======================= */
 function updateMapMarker() {
-  if (!map || !gpsMarker) return;
+  if (!map2 || !gpsMarker2) return;
   if (gpsLat === null || gpsLon === null) return;
 
   const style = gpsFix
     ? { color: "#16a34a", fillColor: "#16a34a" }
     : { color: "#f97316", fillColor: "#f97316" };
 
-  gpsMarker.setLatLng([gpsLat, gpsLon]);
-  gpsMarker.setStyle(style);
-
-  if (map2 && gpsMarker2) {
-    gpsMarker2.setLatLng([gpsLat, gpsLon]);
-    gpsMarker2.setStyle(style);
-  }
+  gpsMarker2.setLatLng([gpsLat, gpsLon]);
+  gpsMarker2.setStyle(style);
 }
 
 
@@ -346,7 +317,6 @@ function updateMapMarker() {
     wrapper.classList.toggle("page-2", n === 2);
     dot1.classList.toggle("active", n === 1);
     dot2.classList.toggle("active", n === 2);
-    if (n === 1 && map)  setTimeout(() => map.invalidateSize(),  350);
     if (n === 2 && map2) setTimeout(() => map2.invalidateSize(), 350);
   }
 
