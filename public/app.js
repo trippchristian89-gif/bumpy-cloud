@@ -270,21 +270,14 @@ window.addEventListener("DOMContentLoaded", () => {
       L.DomEvent.on(btn, "click", L.DomEvent.preventDefault);
       L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation);
       L.DomEvent.on(btn, "click", () => {
-      
         const container = document.getElementById("map2Container");
-        const swipeWrapper = document.getElementById("swipeWrapper");
-      
         const isFs = container.classList.toggle("fullscreen");
         btn.innerHTML = isFs ? "&#x2715;" : "&#x26F6;";
-      
-        // sicherstellen dass Seite 2 aktiv bleibt
-        swipeWrapper.classList.add("page-2");
-      
-        setTimeout(() => {
-          map2.invalidateSize();
-        }, 150);
-      
+        setTimeout(() => map2.invalidateSize(), 50);
       });
+      return container;
+    }
+  });
   new FullscreenControl().addTo(map2);
 });
 
@@ -340,4 +333,3 @@ function updateMapMarker() {
     if (dx > 0 && currentPage === 2) goToPage(1);
   }, { passive: true });
 })();
-
