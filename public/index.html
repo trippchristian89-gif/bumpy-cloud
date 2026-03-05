@@ -57,12 +57,92 @@
     .leaflet-control button {
       overflow: visible !important;
     }
+
+    /* ===== SWIPE ===== */
+    html, body {
+      overflow-x: hidden;
+    }
+
+    .swipe-outer {
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .swipe-wrapper {
+      display: flex;
+      width: 200%;
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: transform;
+    }
+
+    .swipe-wrapper.page-2 {
+      transform: translateX(-50%);
+    }
+
+    .swipe-page {
+      width: 50%;
+      min-height: 100vh;
+      flex-shrink: 0;
+    }
+
+    /* ===== PAGE DOTS ===== */
+    .page-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 6px 0;
+      background: #f4f1e8;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .page-dots span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ccc;
+      display: block;
+      transition: background 0.2s;
+    }
+
+    .page-dots span.active {
+      background: #888;
+    }
+
+    /* ===== PAGE 2 ===== */
+    .panel2 {
+      width: 360px;
+      margin: 0 auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    @media (max-width: 600px) {
+      .panel2 {
+        width: 100%;
+      }
+    }
+
   </style>
 </head>
 
 <body>
 
-  <div class="panel">
+  <!-- PAGE DOTS -->
+  <div class="page-dots">
+    <span class="active" id="dot-1"></span>
+    <span id="dot-2"></span>
+  </div>
+
+  <div class="swipe-outer">
+    <div class="swipe-wrapper" id="swipeWrapper">
+
+      <!-- PAGE 1 -->
+      <div class="swipe-page">
+        <div class="panel">
 
     <div class="hero-image">
       <img src="/camper.png" alt="Bumpy Camper">
@@ -126,7 +206,27 @@
       <div id="map" style="height: 280px; border-radius: 12px;"></div>
     </div>
 
-  </div>
+  </div><!-- end panel page 1 -->
+      </div><!-- end swipe-page 1 -->
+
+      <!-- PAGE 2 -->
+      <div class="swipe-page">
+        <div class="panel2">
+
+          <div class="box">
+            <div class="row">
+              <span style="font-weight:700; color:#888; font-size:0.8em; letter-spacing:1px; text-transform:uppercase;">Seite 2</span>
+            </div>
+            <div class="row" style="margin-top:8px;">
+              <span>Hier kommen weitere Features</span>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- end swipe-page 2 -->
+
+    </div><!-- end swipe-wrapper -->
+  </div><!-- end swipe-outer -->
 
   <script src="/app.js"></script>
 </body>
