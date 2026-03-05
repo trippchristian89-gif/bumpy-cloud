@@ -2,6 +2,7 @@
    STATE
 ======================= */
 let tempBumpy = 0;
+//let tempFloor = 0;
 let tempAir   = 0;
 
 let floorState = "OFF";
@@ -31,17 +32,28 @@ const ws = new WebSocket(wsProto + location.host);
 
 ws.onopen = () => {
   console.log("🌐 WS connected");
-  ws.send(JSON.stringify({ type: "identify", role: "browser" }));
+
+  ws.send(JSON.stringify({
+    type: "identify",
+    role: "browser"
+  }));
 };
 
 ws.onmessage = (e) => {
   let data;
-  try { data = JSON.parse(e.data); } catch { return; }
+  try {
+    data = JSON.parse(e.data);
+  } catch {
+    return;
+  }
 
   if (data.type === "device") {
      isOnline = data.online;
      setOnline(data.online);
-     if (!isOnline) resetUI();
+
+     if (!isOnline) {
+        resetUI();
+     }
   }
 
   if (data.type === "status") {
@@ -55,11 +67,33 @@ ws.onclose = () => {
 };
 
 /* =======================
-   STATUS
+   HEATER floorheating COMMANDS
+======================= */
+function startFloor() {
+   console.log("UI: floorheating_start clicked");
+  ws.send(JSON.stringify({ type: "command", command: "floor_start" }));
+}
+
+function stopFloor() {
+   console.log("UI: floorheating_stop clicked");
+  ws.send(JSON.stringify({ type: "command", command: "floor_stop" }));
+}
+
+function startHeater() {
+   console.log("UI: heater_start clicked");
+  ws.send(JSON.stringify({ type: "command", command: "heater_start" }));
+}
+
+function stopHeater() {
+   console.log("UI: heater_stop clicked");
+  ws.send(JSON.stringify({ type: "command", command: "heater_stop" }));
+}
+
+/* =======================
+   STATUS MAPPING
 ======================= */
 function applyStatus(data) {
   if (!isOnline) return;
-
   tempBumpy = data.temp_bumpy;
   ntcBumpyError = data.ntc_bumpy_error;
 
@@ -92,20 +126,33 @@ function setOnline(isOnline) {
 
 function updateUI() {
   if (!isOnline) return;
+  setText("temp_bumpy", formatTemp(tempBumpy), ntcBumpyError);
+  setText("temp_air", formatTemp(tempAir), ntcAirError);
 
-  document.getElementById("temp_bumpy").textContent = formatTemp(tempBumpy);
-  document.getElementById("temp_air").textContent   = formatTemp(tempAir);
+  const floorStateEl = document.getElementById("floor_state");
+  if (ntcFloorError) {
+    floorStateEl.textContent = "ERROR";
+    floorStateEl.style.color = "#c53030";
+  } else {
+    floorStateEl.textContent = floorState;
+    floorStateEl.style.color = "";
+  }
 
-  document.getElementById("floor_state").textContent  = floorState;
   document.getElementById("heater_state").textContent = heaterState;
 
-  document.getElementById("heater_info").textContent = heaterInfo || "";
+  const infoEl = document.getElementById("heater_info");
+  infoEl.textContent = heaterInfo || "";
+  infoEl.className = heaterInfo.includes("FAILED") ? "info error" : "info";
 
-  document.getElementById("floor_timer").textContent =
-    formatTime(floorTimerRemaining);
+  document.getElementById("floor_timer").textContent = formatTime(floorTimerRemaining);
+  document.getElementById("floor_timer_total").textContent = formatTime(floorTimerTotal);
+}
 
-  document.getElementById("floor_timer_total").textContent =
-    formatTime(floorTimerTotal);
+function setText(id, text, error) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = error ? "#c53030" : "";
 }
 
 function formatTemp(v) {
@@ -121,18 +168,47 @@ function formatTime(sec) {
 }
 
 function resetUI() {
-  document.getElementById("temp_bumpy").textContent = "--.- °C";
-  document.getElementById("temp_air").textContent = "--.- °C";
+  setText("temp_bumpy", "--.- °C", false);
+  setText("floor_temp", "--.- °C", false);
+  setText("temp_air", "--.- °C", false);
+
+  document.getElementById("floor_state").textContent = "--";
+  document.getElementById("heater_state").textContent = "--";
+  document.getElementById("heater_info").textContent = "";
+
+  document.getElementById("floor_timer").textContent = "--:--";
+  document.getElementById("floor_timer_total").textContent = "--:--";
 }
+
+/* =======================
+   BUTTON BINDINGS
+======================= */
+window.addEventListener("DOMContentLoaded", () => {
+
+  const btnFloorStart = document.getElementById("btn_floor_start");
+  const btnFloorStop  = document.getElementById("btn_floor_stop");
+  if (btnFloorStart) btnFloorStart.addEventListener("click", startFloor);
+  if (btnFloorStop)  btnFloorStop.addEventListener("click", stopFloor);
+
+  const btnStart = document.getElementById("btn_start");
+  const btnStop  = document.getElementById("btn_stop");
+  if (btnStart) btnStart.addEventListener("click", () => { console.log("🔥 UI Button START"); startHeater(); });
+  if (btnStop)  btnStop.addEventListener("click",  () => { console.log("🧊 UI Button STOP");  stopHeater(); });
+
+});
 
 /* =======================
    MAP INIT
 ======================= */
+let map = null;
+let gpsMarker = null;
 
+/* =======================
+   MAP 2 INIT (Page 2)
+======================= */
 let map2, gpsMarker2;
 
 window.addEventListener("DOMContentLoaded", () => {
-
   map2 = L.map("map2", {
     zoomControl: true,
     attributionControl: false
@@ -149,51 +225,66 @@ window.addEventListener("DOMContentLoaded", () => {
     fillOpacity: 0.9
   }).addTo(map2);
 
-  /* ===== FULLSCREEN BUTTON ===== */
-
-  const FullscreenControl = L.Control.extend({
-    options: { position: "topleft" },
-
+  // Locate Button map2
+  const LocateControl2 = L.Control.extend({
+    options: { position: "bottomright" },
     onAdd: function () {
       const container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
       const btn = L.DomUtil.create("a", "", container);
-
-      btn.innerHTML = "⛶";
-      btn.href = "#";
-      btn.title = "Fullscreen";
-
-      L.DomEvent.on(btn, "click", L.DomEvent.stop);
+      btn.title = "Zu meinem Standort";
+      btn.href  = "#";
+      btn.style.cssText = `
+        width: 26px; height: 26px; line-height: 26px;
+        display: block; text-align: center;
+        font-size: 14px; cursor: pointer;
+        text-decoration: none; color: black;
+      `;
+      btn.innerHTML = `&#8853;`;
+      L.DomEvent.on(btn, "click", L.DomEvent.preventDefault);
+      L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation);
       L.DomEvent.on(btn, "click", () => {
-
-        const mapContainer = document.getElementById("map2Container");
-        const wrapper = document.getElementById("swipeWrapper");
-
-        // immer Seite 2 aktiv halten
-        wrapper.classList.add("page-2");
-
-        const fs = mapContainer.classList.toggle("fullscreen");
-        btn.innerHTML = fs ? "✕" : "⛶";
-
-        setTimeout(() => {
-          map2.invalidateSize();
-        }, 200);
-
+        if (gpsLat !== null && gpsLon !== null)
+          map2.setView([gpsLat, gpsLon], 15, { animate: true });
       });
-
       return container;
     }
   });
+  new LocateControl2().addTo(map2);
 
+  // ===== FULLSCREEN BUTTON =====
+  const FullscreenControl = L.Control.extend({
+    options: { position: "topleft" },
+    onAdd: function () {
+      const container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+      const btn = L.DomUtil.create("a", "", container);
+      btn.title = "Vollbild";
+      btn.href  = "#";
+      btn.style.cssText = `
+        width: 26px; height: 26px; line-height: 26px;
+        display: block; text-align: center;
+        font-size: 16px; cursor: pointer;
+        text-decoration: none; color: black;
+      `;
+      btn.innerHTML = "&#x26F6;";
+
+      L.DomEvent.on(btn, "click", L.DomEvent.preventDefault);
+      L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation);
+      L.DomEvent.on(btn, "click", () => {
+        const container = document.getElementById("map2Container");
+        const isFs = container.classList.toggle("fullscreen");
+        btn.innerHTML = isFs ? "&#x2715;" : "&#x26F6;";
+        setTimeout(() => map2.invalidateSize(), 50);
+      });
+      return container;
+    }
+  });
   new FullscreenControl().addTo(map2);
-
 });
 
 /* =======================
    MARKER UPDATE
 ======================= */
-
 function updateMapMarker() {
-
   if (!map2 || !gpsMarker2) return;
   if (gpsLat === null || gpsLon === null) return;
 
@@ -205,33 +296,28 @@ function updateMapMarker() {
   gpsMarker2.setStyle(style);
 }
 
+
+
+
+
 /* =======================
    SWIPE
 ======================= */
-
 (function() {
-
   const wrapper  = document.getElementById("swipeWrapper");
   const dot1     = document.getElementById("dot-1");
   const dot2     = document.getElementById("dot-2");
-
   if (!wrapper) return;
 
   let currentPage = 1;
-  let startX = 0;
-  let startY = 0;
+  let startX = 0, startY = 0;
 
   function goToPage(n) {
-
     currentPage = n;
-
     wrapper.classList.toggle("page-2", n === 2);
-
     dot1.classList.toggle("active", n === 1);
     dot2.classList.toggle("active", n === 2);
-
-    if (n === 2 && map2)
-      setTimeout(() => map2.invalidateSize(), 350);
+    if (n === 2 && map2) setTimeout(() => map2.invalidateSize(), 350);
   }
 
   wrapper.addEventListener("touchstart", (e) => {
@@ -240,15 +326,10 @@ function updateMapMarker() {
   }, { passive: true });
 
   wrapper.addEventListener("touchend", (e) => {
-
     const dx = e.changedTouches[0].clientX - startX;
     const dy = e.changedTouches[0].clientY - startY;
-
     if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
-
     if (dx < 0 && currentPage === 1) goToPage(2);
     if (dx > 0 && currentPage === 2) goToPage(1);
-
   }, { passive: true });
-
 })();
