@@ -228,6 +228,17 @@ window.addEventListener("DOMContentLoaded", () => {
     fillOpacity: 0.9
   }).addTo(map2);
 
+   // verhindert Swipe wenn Map bewegt wird
+const mapEl = map2.getContainer();
+   
+   mapEl.addEventListener("touchstart", (e) => {
+     e.stopPropagation();
+   }, { passive: true });
+   
+   mapEl.addEventListener("touchmove", (e) => {
+     e.stopPropagation();
+   }, { passive: true });
+
   // Locate Button map2
   const LocateControl2 = L.Control.extend({
     options: { position: "bottomright" },
@@ -415,6 +426,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
