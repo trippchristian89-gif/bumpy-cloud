@@ -275,3 +275,37 @@ function updateMapMarker() {
 
 
 
+
+/* =======================
+   SWIPE
+======================= */
+(function() {
+  const wrapper  = document.getElementById("swipeWrapper");
+  const dot1     = document.getElementById("dot-1");
+  const dot2     = document.getElementById("dot-2");
+  if (!wrapper) return;
+
+  let currentPage = 1;
+  let startX = 0, startY = 0;
+
+  function goToPage(n) {
+    currentPage = n;
+    wrapper.classList.toggle("page-2", n === 2);
+    dot1.classList.toggle("active", n === 1);
+    dot2.classList.toggle("active", n === 2);
+    if (n === 1 && map) setTimeout(() => map.invalidateSize(), 350);
+  }
+
+  wrapper.addEventListener("touchstart", (e) => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  wrapper.addEventListener("touchend", (e) => {
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
+    if (dx < 0 && currentPage === 1) goToPage(2);
+    if (dx > 0 && currentPage === 2) goToPage(1);
+  }, { passive: true });
+})();
