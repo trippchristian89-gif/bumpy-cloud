@@ -24,6 +24,10 @@ let gpsLat = null;
 let gpsLon = null;
 let gpsSats = 0;
 
+let gpsTrackingEnabled = false;
+let gpsAlarmEnabled = false;
+let pirAlarmEnabled = false;
+
 /* =======================
    WEBSOCKET CLIENT
 ======================= */
@@ -198,6 +202,40 @@ window.addEventListener("DOMContentLoaded", () => {
   const btnStop  = document.getElementById("btn_stop");
   if (btnStart) btnStart.addEventListener("click", () => { console.log("🔥 UI Button START"); startHeater(); });
   if (btnStop)  btnStop.addEventListener("click",  () => { console.log("🧊 UI Button STOP");  stopHeater(); });
+
+   const btnGpsTracking = document.getElementById("btn_gps_tracking");
+const btnGpsAlarm = document.getElementById("btn_gps_alarm");
+const btnPirAlarm = document.getElementById("btn_pir_alarm");
+
+btnGpsTracking.addEventListener("click", () => {
+  gpsTrackingEnabled = !gpsTrackingEnabled;
+  btnGpsTracking.textContent = gpsTrackingEnabled ? "ON" : "OFF";
+
+  ws.send(JSON.stringify({
+    type: "command",
+    command: gpsTrackingEnabled ? "gps_tracking_on" : "gps_tracking_off"
+  }));
+});
+
+btnGpsAlarm.addEventListener("click", () => {
+  gpsAlarmEnabled = !gpsAlarmEnabled;
+  btnGpsAlarm.textContent = gpsAlarmEnabled ? "ON" : "OFF";
+
+  ws.send(JSON.stringify({
+    type: "command",
+    command: gpsAlarmEnabled ? "gps_alarm_on" : "gps_alarm_off"
+  }));
+});
+
+btnPirAlarm.addEventListener("click", () => {
+  pirAlarmEnabled = !pirAlarmEnabled;
+  btnPirAlarm.textContent = pirAlarmEnabled ? "ON" : "OFF";
+
+  ws.send(JSON.stringify({
+    type: "command",
+    command: pirAlarmEnabled ? "pir_alarm_on" : "pir_alarm_off"
+  }));
+});
 
 });
 
@@ -424,6 +462,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
