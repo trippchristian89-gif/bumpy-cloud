@@ -257,18 +257,71 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 /* =======================
+   MAP 2 INIT (Page 2)
+======================= */
+let map2, gpsMarker2;
+
+window.addEventListener("DOMContentLoaded", () => {
+  map2 = L.map("map2", {
+    zoomControl: true,
+    attributionControl: false
+  }).setView([50.8070, 8.7700], 13);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19
+  }).addTo(map2);
+
+  gpsMarker2 = L.circleMarker([50.8070, 8.7700], {
+    radius: 8,
+    color: "#f97316",
+    fillColor: "#f97316",
+    fillOpacity: 0.9
+  }).addTo(map2);
+
+  // Locate Button map2
+  const LocateControl2 = L.Control.extend({
+    options: { position: "bottomright" },
+    onAdd: function () {
+      const container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+      const btn = L.DomUtil.create("a", "", container);
+      btn.title = "Zu meinem Standort";
+      btn.href  = "#";
+      btn.style.cssText = `
+        width: 26px; height: 26px; line-height: 26px;
+        display: block; text-align: center;
+        font-size: 14px; cursor: pointer;
+        text-decoration: none; color: black;
+      `;
+      btn.innerHTML = `&#8853;`;
+      L.DomEvent.on(btn, "click", L.DomEvent.preventDefault);
+      L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation);
+      L.DomEvent.on(btn, "click", () => {
+        if (gpsLat !== null && gpsLon !== null)
+          map2.setView([gpsLat, gpsLon], 15, { animate: true });
+      });
+      return container;
+    }
+  });
+  new LocateControl2().addTo(map2);
+});
+
+/* =======================
    MARKER UPDATE
 ======================= */
 function updateMapMarker() {
   if (!map || !gpsMarker) return;
   if (gpsLat === null || gpsLon === null) return;
 
-  gpsMarker.setLatLng([gpsLat, gpsLon]);
+  const style = gpsFix
+    ? { color: "#16a34a", fillColor: "#16a34a" }
+    : { color: "#f97316", fillColor: "#f97316" };
 
-  if (gpsFix) {
-    gpsMarker.setStyle({ color: "#16a34a", fillColor: "#16a34a" });
-  } else {
-    gpsMarker.setStyle({ color: "#f97316", fillColor: "#f97316" });
+  gpsMarker.setLatLng([gpsLat, gpsLon]);
+  gpsMarker.setStyle(style);
+
+  if (map2 && gpsMarker2) {
+    gpsMarker2.setLatLng([gpsLat, gpsLon]);
+    gpsMarker2.setStyle(style);
   }
 }
 
@@ -293,7 +346,8 @@ function updateMapMarker() {
     wrapper.classList.toggle("page-2", n === 2);
     dot1.classList.toggle("active", n === 1);
     dot2.classList.toggle("active", n === 2);
-    if (n === 1 && map) setTimeout(() => map.invalidateSize(), 350);
+    if (n === 1 && map)  setTimeout(() => map.invalidateSize(),  350);
+    if (n === 2 && map2) setTimeout(() => map2.invalidateSize(), 350);
   }
 
   wrapper.addEventListener("touchstart", (e) => {
