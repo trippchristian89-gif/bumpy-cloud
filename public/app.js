@@ -113,8 +113,9 @@ function applyStatus(data) {
 
   updateMapMarker();
   updateUI();
-  if (map2 && gpsLat !== null && gpsLon !== null) {
+   if (map2 && gpsLat !== null && gpsLon !== null && !map2._gpsCentered) {
      map2.setView([gpsLat, gpsLon], 15);
+     map2._gpsCentered = true;
    }
 }
 
@@ -426,6 +427,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
