@@ -1,238 +1,3 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BUMPY</title>
-
-  <!-- Leaflet -->
-  <link rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <link rel="stylesheet" href="/style.css">
-  <link rel="icon" href="/icon-192.png">
-  <link rel="apple-touch-icon" href="/icon-192.png">
-
-  <meta name="apple-mobile-web-app-title" content="BUMPY">
-  <meta name="application-name" content="BUMPY">
-
-  <style>
-    .panel {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .hero-image {
-      margin-top: 6px;
-      margin-bottom: 8px;
-    }
-
-    .hero-image img {
-      width: 100%;
-      border-radius: 12px;
-      display: block;
-    }
-
-    .hero-image-2 {
-      margin-top: 6px;
-      margin-bottom: 8px;
-    }
-
-    .hero-image-2 img {
-      width: 100%;
-      border-radius: 12px;
-      display: block;
-    }
-    /* Locate Button SVG Fix */
-    .leaflet-control-zoom-in svg,
-    .leaflet-control-zoom-out svg {
-      width: auto;
-      height: auto;
-    }
-
-    .leaflet-control a,
-    .leaflet-control button {
-      overflow: visible !important;
-    }
-
-    /* ===== SWIPE ===== */
-    html, body {
-      overflow-x: hidden;
-    }
-
-    .swipe-outer {
-      overflow: hidden;
-      width: 100%;
-    }
-
-    .swipe-wrapper {
-      display: flex;
-      width: 200%;
-      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      will-change: transform;
-    }
-
-    .swipe-wrapper.page-2 {
-      transform: translateX(-50%);
-    }
-
-    .swipe-page {
-      width: 50%;
-      min-height: 100vh;
-      flex-shrink: 0;
-    }
-
-    /* ===== PAGE DOTS ===== */
-    .page-dots {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      padding: 6px 0 2px;
-      background: #f4f1e8;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .page-dots span {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #ccc;
-      display: block;
-      transition: background 0.2s;
-    }
-
-    .page-dots span.active {
-      background: #888;
-    }
-
-    /* ===== PAGE 2 ===== */
-    .panel2 {
-      width: 360px;
-      margin: 0 auto;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    @media (max-width: 600px) {
-      .panel2 {
-        width: 100%;
-      }
-    }
-
-
-    /* ===== MAP FULLSCREEN ===== */
-    .map2-container {
-      position: relative;
-    }
-
-    .map2-container.fullscreen {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: 9999;
-      border-radius: 0 !important;
-    }
-
-    .map2-container.fullscreen #map2 {
-      height: 100vh !important;
-      border-radius: 0 !important;
-    }
-
-  </style>
-</head>
-
-<body>
-
-  <!-- PAGE DOTS -->
-  <div class="page-dots">
-    <span class="active" id="dot-1"></span>
-    <span id="dot-2"></span>
-  </div>
-
-  <div class="swipe-outer">
-    <div class="swipe-wrapper" id="swipeWrapper">
-
-      <!-- PAGE 1 -->
-      <div class="swipe-page">
-        <div class="panel">
-
-    <div class="hero-image">
-      <img src="/camper.png" alt="Bumpy Camper">
-    </div>
-
-    <div class="box footer">
-      <div class="row footer-row">
-        <span class="bumpy-text">BUMPY status</span>
-        <span id="connection_status" class="status offline">offline</span>
-      </div>
-    </div>
-
-    <div class="box">
-      <div class="row">
-        <span>Temp Camper:</span>
-        <span id="temp_bumpy" class="temp">--.- °C</span>
-      </div>
-    </div>
-
-    <div class="box">
-      <div class="row">
-        <span>Floor Heating:</span>
-        <span id="floor_state">OFF</span>
-      </div>
-      <div class="row small">
-        <span id="floor_timer">--:--</span>
-        <span>(<span id="floor_timer_total">--:--</span>)</span>
-      </div>
-    </div>
-
-    <div class="controls">
-      <button id="btn_floor_start">Start</button>
-      <button id="btn_floor_stop">Stop</button>
-    </div>
-
-    <div class="box">
-      <div class="row">
-        <span>Air Heater:</span>
-        <span id="heater_state">OFF</span>
-      </div>
-
-      <div class="row">
-        <span>Temp Air:</span>
-        <span id="temp_air" class="temp">--.- °C</span>
-      </div>
-
-      <hr />
-      <div class="info" id="heater_info"></div>
-    </div>
-
-    <div class="controls">
-      <button id="btn_start">Start</button>
-      <button id="btn_stop">Stop</button>
-    </div>
-
-    <div class="hero-image-2">
-      <img src="/camper2.png" alt="Bumpy Camper 2">
-    </div>
-
-  </div><!-- end panel page 1 -->
-      </div><!-- end swipe-page 1 -->
-
-      <!-- PAGE 2 -->
-      <div class="swipe-page">
-        <div class="panel2">
-
-          <div class="box map2-container" id="map2Container">
-            <div id="map2" style="height: 280px; border-radius: 12px;"></div>
-          </div>
-
         
 <!DOCTYPE html>
 <html>
@@ -471,65 +236,43 @@
 
         
 
-  <div class="box">
-    <div class="row">
-      <span>GPS Tracking</span>
-  
-      <label class="switch">
-        <input type="checkbox" id="btn_gps_tracking">
-        <span class="slider"></span>
-      </label>
-  
-    </div>
-  </div>
-
-
-  <div class="box">
-    <div class="row">
-      <span>GPS Alarm</span>
-  
-      <label class="switch">
-        <input type="checkbox" id="btn_gps_alarm">
-        <span class="slider"></span>
-      </label>
-  
-    </div>
-  </div>
-
-
-  <div class="box">
-    <div class="row">
-      <span>PIR Alarm</span>
-  
-      <label class="switch">
-        <input type="checkbox" id="btn_pir_alarm">
-        <span class="slider"></span>
-      </label>
-  
-    </div>
-  </div>
-
-
-
-        </div>
-      </div><!-- end swipe-page 2 -->
-
-    </div><!-- end swipe-wrapper -->
-  </div><!-- end swipe-outer -->
-
-    <div id="mapFullscreen">
-      <div id="mapFullscreenInner"></div>
-  </div>
-
-  <script src="/app.js"></script>
-</body>
-
-</html>
-
-
-
-
-
+          <div class="box">
+            <div class="row">
+              <span>GPS Tracking</span>
+          
+              <label class="switch">
+                <input type="checkbox" id="btn_gps_tracking">
+                <span class="slider"></span>
+              </label>
+          
+            </div>
+          </div>
+          
+          
+          <div class="box">
+            <div class="row">
+              <span>GPS Alarm</span>
+          
+              <label class="switch alarm">
+                <input type="checkbox" id="btn_gps_alarm">
+                <span class="slider"></span>
+              </label>
+          
+            </div>
+          </div>
+          
+          
+          <div class="box">
+            <div class="row">
+              <span>PIR Alarm</span>
+          
+              <label class="switch alarm">
+                <input type="checkbox" id="btn_pir_alarm">
+                <span class="slider"></span>
+              </label>
+          
+            </div>
+          </div>
 
 
 
