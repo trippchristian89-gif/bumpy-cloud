@@ -28,6 +28,8 @@ let gpsTrackingEnabled = false;
 let gpsAlarmEnabled = false;
 let pirAlarmEnabled = false;
 
+let ignoreStatusUntil = 0;
+
 /* =======================
    WEBSOCKET CLIENT
 ======================= */
@@ -97,6 +99,7 @@ function stopHeater() {
    STATUS MAPPING
 ======================= */
 function applyStatus(data) {
+  if (Date.now() < ignoreStatusUntil) return;
   if (!isOnline) return;
   tempBumpy = data.temp_bumpy;
   ntcBumpyError = data.ntc_bumpy_error;
@@ -231,6 +234,8 @@ window.addEventListener("DOMContentLoaded", () => {
      if (!el) return;
    
      el.addEventListener("change", () => {
+
+       ignoreStatusUntil = Date.now() + 1000; // 1 Sekunde ignorieren
    
        ws.send(JSON.stringify({
          type: "command",
@@ -465,6 +470,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
