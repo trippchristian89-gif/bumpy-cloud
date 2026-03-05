@@ -339,6 +339,11 @@ let mapFullscreen;
 
 function openFullscreenMap(){
 
+  if (mapFullscreen) {
+    mapFullscreen.remove();
+    mapFullscreen = null;
+  }
+
   document.getElementById("mapFullscreen").classList.add("active");
 
   mapFullscreen = L.map("mapFullscreenInner", {
@@ -349,6 +354,32 @@ function openFullscreenMap(){
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom:19
   }).addTo(mapFullscreen);
+
+   // Locate Button (Fullscreen)
+const LocateControlFS = L.Control.extend({
+  options: { position: "bottomright" },
+  onAdd: function () {
+    const container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+    const btn = L.DomUtil.create("a", "", container);
+
+    btn.href = "javascript:void(0)";
+    btn.innerHTML = "&#8853;";
+    btn.style.cssText = `
+      width: 26px; height: 26px; line-height: 26px;
+      display:block; text-align:center;
+      font-size:14px; text-decoration:none; color:black;
+    `;
+
+    L.DomEvent.on(btn, "click", (e) => {
+      L.DomEvent.stop(e);
+      if (gpsLat !== null && gpsLon !== null)
+        mapFullscreen.setView([gpsLat, gpsLon], 15, { animate:true });
+    });
+
+    return container;
+  }
+});
+new LocateControlFS().addTo(mapFullscreen);
 
   if (gpsLat && gpsLon){
     L.circleMarker([gpsLat,gpsLon],{
@@ -372,6 +403,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
 });
+
 
 
 
