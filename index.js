@@ -8,10 +8,28 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/* ===== Basic Auth ===== */
+const BASIC_AUTH_USER = "bumpy";
+const BASIC_AUTH_PASS = "MB-816d";
+
+function basicAuth(req, res, next) {
+  const auth = req.headers["authorization"];
+  if (auth) {
+    const b64 = auth.split(" ")[1] || "";
+    const [user, pass] = Buffer.from(b64, "base64").toString().split(":");
+    if (user === BASIC_AUTH_USER && pass === BASIC_AUTH_PASS) {
+      return next();
+    }
+  }
+  res.set("WWW-Authenticate", 'Basic realm="BUMPY"');
+  res.status(401).send("Zugang verweigert");
+}
+
 /* ===== App ===== */
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+app.use(basicAuth);
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 
