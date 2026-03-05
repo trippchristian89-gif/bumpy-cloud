@@ -360,10 +360,19 @@ function openFullscreenMap(){
   }
 }
 
-document.getElementById("closeFullscreen").onclick = () => {
-  document.getElementById("mapFullscreen").classList.remove("active");
-  mapFullscreen.remove();
-};
+window.addEventListener("DOMContentLoaded", () => {
+
+  const closeBtn = document.getElementById("closeFullscreen");
+
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      document.getElementById("mapFullscreen").classList.remove("active");
+      if (mapFullscreen) mapFullscreen.remove();
+    };
+  }
+
+});
+
 
 
 
