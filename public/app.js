@@ -271,10 +271,21 @@ window.addEventListener("DOMContentLoaded", () => {
       L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation);
       L.DomEvent.on(btn, "click", () => {
         const container = document.getElementById("map2Container");
+      
         const isFs = container.classList.toggle("fullscreen");
         btn.innerHTML = isFs ? "&#x2715;" : "&#x26F6;";
-        setTimeout(() => map2.invalidateSize(), 50);
+      
+        // Karte korrekt neu berechnen
+        setTimeout(() => {
+          map2.invalidateSize();
+        }, 150);
       });
+      //L.DomEvent.on(btn, "click", () => {
+        //const container = document.getElementById("map2Container");
+        //const isFs = container.classList.toggle("fullscreen");
+        //btn.innerHTML = isFs ? "&#x2715;" : "&#x26F6;";
+        //setTimeout(() => map2.invalidateSize(), 50);
+      //});
       return container;
     }
   });
@@ -333,3 +344,4 @@ function updateMapMarker() {
     if (dx > 0 && currentPage === 2) goToPage(1);
   }, { passive: true });
 })();
+
