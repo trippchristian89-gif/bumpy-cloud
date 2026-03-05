@@ -270,10 +270,7 @@ window.addEventListener("DOMContentLoaded", () => {
       L.DomEvent.on(btn, "click", L.DomEvent.preventDefault);
       L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation);
       L.DomEvent.on(btn, "click", () => {
-        const container = document.getElementById("map2Container");
-        const isFs = container.classList.toggle("fullscreen");
-        btn.innerHTML = isFs ? "&#x2715;" : "&#x26F6;";
-        setTimeout(() => map2.invalidateSize(), 50);
+         openFullscreenMap();
       });
       return container;
     }
@@ -333,6 +330,40 @@ function updateMapMarker() {
     if (dx > 0 && currentPage === 2) goToPage(1);
   }, { passive: true });
 })();
+
+/* =======================
+   FULLSCREEN MAP
+======================= */
+
+let mapFullscreen;
+
+function openFullscreenMap(){
+
+  document.getElementById("mapFullscreen").classList.add("active");
+
+  mapFullscreen = L.map("mapFullscreenInner", {
+    zoomControl:true,
+    attributionControl:false
+  }).setView([gpsLat || 50.8070, gpsLon || 8.7700], 15);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom:19
+  }).addTo(mapFullscreen);
+
+  if (gpsLat && gpsLon){
+    L.circleMarker([gpsLat,gpsLon],{
+      radius:8,
+      color:"#16a34a",
+      fillColor:"#16a34a",
+      fillOpacity:0.9
+    }).addTo(mapFullscreen);
+  }
+}
+
+document.getElementById("closeFullscreen").onclick = () => {
+  document.getElementById("mapFullscreen").classList.remove("active");
+  mapFullscreen.remove();
+};
 
 
 
