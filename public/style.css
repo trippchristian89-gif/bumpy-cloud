@@ -205,21 +205,7 @@ MAP FULLSCREEN
   height:100%;
 }
 
-#closeFullscreen{
-  position:absolute;
-  top:10px;
-  left:10px;
-  width:26px;
-  height:26px;
-  line-height:26px;
-  text-align:center;
-  font-size:16px;
-  background:white;
-  border:1px solid #ccc;
-  border-radius:4px;
-  cursor:pointer;
-  z-index:10000;
-}
+
 
 
 
