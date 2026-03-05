@@ -121,6 +121,22 @@ function applyStatus(data) {
      map2.setView([gpsLat, gpsLon], 15);
      map2._gpsCentered = true;
    }
+   
+  /* =======================
+     ALARM STATE SYNC
+  ======================= */
+
+  if (data.alarm) {
+
+    const btnGpsTracking = document.getElementById("btn_gps_tracking");
+    const btnGpsAlarm = document.getElementById("btn_gps_alarm");
+    const btnPirAlarm = document.getElementById("btn_pir_alarm");
+
+    if (btnGpsTracking) btnGpsTracking.checked = data.alarm.tracking;
+    if (btnGpsAlarm) btnGpsAlarm.checked = data.alarm.gps;
+    if (btnPirAlarm) btnPirAlarm.checked = data.alarm.pir;
+
+  }
 }
 
 /* =======================
@@ -449,6 +465,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
