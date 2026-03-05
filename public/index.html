@@ -126,6 +126,26 @@
       }
     }
 
+
+    /* ===== MAP FULLSCREEN ===== */
+    .map2-container {
+      position: relative;
+    }
+
+    .map2-container.fullscreen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9999;
+      border-radius: 0 !important;
+    }
+
+    .map2-container.fullscreen #map2 {
+      height: 100vh !important;
+      border-radius: 0 !important;
+    }
+
   </style>
 </head>
 
@@ -198,14 +218,6 @@
       <button id="btn_stop">Stop</button>
     </div>
 
-    <div class="hero-image-2">
-      <img src="/camper2.png" alt="Bumpy Camper 2">
-    </div>
-
-    <div class="box">
-      <div id="map" style="height: 280px; border-radius: 12px;"></div>
-    </div>
-
   </div><!-- end panel page 1 -->
       </div><!-- end swipe-page 1 -->
 
@@ -213,7 +225,7 @@
       <div class="swipe-page">
         <div class="panel2">
 
-          <div class="box">
+          <div class="box map2-container" id="map2Container">
             <div id="map2" style="height: 280px; border-radius: 12px;"></div>
           </div>
 
@@ -227,4 +239,3 @@
 </body>
 
 </html>
-
