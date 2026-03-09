@@ -65,6 +65,7 @@ mqttClient.on("connect", () => {
   mqttClient.subscribe("bumpy/identify",  { qos: 1 });
   mqttClient.subscribe("bumpy/heartbeat", { qos: 0 });
   mqttClient.subscribe("bumpy/status",    { qos: 0 });
+  mqttClient.subscribe("bumpy/alarm",     { qos: 1 });
 });
 
 mqttClient.on("error", (err) => console.error("❌ MQTT error:", err.message));
@@ -106,6 +107,13 @@ mqttClient.on("message", (topic, message) => {
   if (topic === "bumpy/status") {
     lastStatus = data;
     broadcastToBrowsers({ type: "status", payload: data });
+    return;
+  }
+
+  /* ===== ALARM ===== */
+  if (topic === "bumpy/alarm") {
+    console.log("🚨 ALARM received:", JSON.stringify(data));
+    broadcastToBrowsers({ type: "alarm", payload: data });
     return;
   }
 });
