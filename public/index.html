@@ -128,36 +128,6 @@
     }
 
 
-    /* ===== GEOFENCE ALARM BANNER ===== */
-    .geofence-alarm-box {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      background: #c53030;
-      border-radius: 12px;
-      padding: 16px 12px;
-      margin-top: 4px;
-    }
-
-    .geofence-alarm-box.visible {
-      display: flex;
-      animation: alarm-pulse 1s ease-in-out infinite;
-    }
-
-    .geofence-alarm-box .alarm-text {
-      color: #fff;
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-align: center;
-    }
-
-    @keyframes alarm-pulse {
-      0%   { opacity: 1; }
-      50%  { opacity: 0.6; }
-      100% { opacity: 1; }
-    }
-
     /* ===== MAP FULLSCREEN ===== */
     .map2-container {
       position: relative;
@@ -302,11 +272,6 @@
               </label>
           
             </div>
-          </div>
-
-          <!-- GEOFENCE ALARM BANNER -->
-          <div id="geofence-alarm" class="geofence-alarm-box">
-            <span class="alarm-text">⚠ GPS ALARM</span>
           </div>
 
 
