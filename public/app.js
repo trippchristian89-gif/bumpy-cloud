@@ -1,4 +1,3 @@
-
 /* =======================
    STATE
 ======================= */
@@ -28,8 +27,6 @@ let gpsSats = 0;
 let gpsTrackingEnabled = false;
 let gpsAlarmEnabled = false;
 let pirAlarmEnabled = false;
-
-let activeAlarm = false;
 
 let ignoreStatusUntil = 0;
 
@@ -67,10 +64,6 @@ ws.onmessage = (e) => {
 
   if (data.type === "status") {
     applyStatus(data.payload);
-  }
-
-  if (data.type === "alarm") {
-    showAlarm(data.payload);
   }
 };
 
@@ -242,11 +235,7 @@ window.addEventListener("DOMContentLoaded", () => {
    
      el.addEventListener("change", () => {
 
-       ignoreStatusUntil = Date.now() + 1000;
-
-       if (id === "btn_gps_alarm" && !el.checked) {
-         clearAlarm();
-       }
+       ignoreStatusUntil = Date.now() + 1000; // 1 Sekunde ignorieren
    
        ws.send(JSON.stringify({
          type: "command",
@@ -357,23 +346,6 @@ function updateMapMarker() {
 
 
 
-
-/* =======================
-   GEOFENCE ALARM
-======================= */
-function showAlarm(payload) {
-  activeAlarm = true;
-  const el = document.getElementById("geofence-alarm");
-  if (!el) return;
-  el.querySelector(".alarm-text").textContent = "⚠ GPS ALARM — Geofence verlassen!";
-  el.classList.add("visible");
-}
-
-function clearAlarm() {
-  activeAlarm = false;
-  const el = document.getElementById("geofence-alarm");
-  if (el) el.classList.remove("visible");
-}
 
 /* =======================
    SWIPE
