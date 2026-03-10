@@ -29,8 +29,6 @@ let gpsAlarmEnabled = false;
 let pirAlarmEnabled = false;
 
 let ignoreStatusUntil = 0;
-let alarmStartMarker = null;
-let alarmStartMarkerFS = null;
 let alarmCircle = null;
 let alarmCircleFS = null;
 
@@ -147,55 +145,6 @@ function applyStatus(data) {
     if (btnPirAlarm)    btnPirAlarm.checked    = data.alarm.pir;
 
   }
-
-  /* =======================
-     ALARM START MARKER
-  ======================= */
-
-  if (data.alarm && data.alarm.gps && data.alarm.lat && data.alarm.lon) {
-
-    const pos = [data.alarm.lat, data.alarm.lon];
-
-    // kleine Karte
-    if (map2) {
-
-      if (!alarmStartMarker) {
-        alarmStartMarker = L.marker(pos)
-          .addTo(map2)
-          .bindPopup("GPS Alarm Startpunkt");
-      } else {
-        alarmStartMarker.setLatLng(pos);
-      }
-
-    }
-
-    // Vollbildkarte
-    if (mapFullscreen) {
-
-      if (!alarmStartMarkerFS) {
-        alarmStartMarkerFS = L.marker(pos)
-          .addTo(mapFullscreen)
-          .bindPopup("GPS Alarm Startpunkt");
-      } else {
-        alarmStartMarkerFS.setLatLng(pos);
-      }
-
-    }
-
-  } else {
-
-    if (alarmStartMarker && map2) {
-      map2.removeLayer(alarmStartMarker);
-      alarmStartMarker = null;
-    }
-
-    if (alarmStartMarkerFS && mapFullscreen) {
-      mapFullscreen.removeLayer(alarmStartMarkerFS);
-      alarmStartMarkerFS = null;
-    }
-
-  }
-
    /* =======================
    GEOFENCE CIRCLE
 ======================= */
@@ -596,6 +545,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
