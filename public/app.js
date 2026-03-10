@@ -30,6 +30,7 @@ let pirAlarmEnabled = false;
 
 let ignoreStatusUntil = 0;
 let alarmStartMarker = null;
+let alarmStartMarkerFS = null;
 
 /* =======================
    WEBSOCKET CLIENT
@@ -100,8 +101,10 @@ function stopHeater() {
    STATUS MAPPING
 ======================= */
 function applyStatus(data) {
+
   if (Date.now() < ignoreStatusUntil) return;
   if (!isOnline) return;
+
   tempBumpy = data.temp_bumpy;
   ntcBumpyError = data.ntc_bumpy_error;
 
@@ -121,11 +124,12 @@ function applyStatus(data) {
 
   updateMapMarker();
   updateUI();
-   if (map2 && gpsLat !== null && gpsLon !== null && !map2._gpsCentered) {
-     map2.setView([gpsLat, gpsLon], 15);
-     map2._gpsCentered = true;
-   }
-   
+
+  if (map2 && gpsLat !== null && gpsLon !== null && !map2._gpsCentered) {
+    map2.setView([gpsLat, gpsLon], 15);
+    map2._gpsCentered = true;
+  }
+
   /* =======================
      ALARM STATE SYNC
   ======================= */
@@ -133,37 +137,77 @@ function applyStatus(data) {
   if (data.alarm) {
 
     const btnGpsTracking = document.getElementById("btn_gps_tracking");
-    const btnGpsAlarm = document.getElementById("btn_gps_alarm");
-    const btnPirAlarm = document.getElementById("btn_pir_alarm");
+    const btnGpsAlarm    = document.getElementById("btn_gps_alarm");
+    const btnPirAlarm    = document.getElementById("btn_pir_alarm");
 
     if (btnGpsTracking) btnGpsTracking.checked = data.alarm.tracking;
-    if (btnGpsAlarm) btnGpsAlarm.checked = data.alarm.gps;
-    if (btnPirAlarm) btnPirAlarm.checked = data.alarm.pir;
+    if (btnGpsAlarm)    btnGpsAlarm.checked    = data.alarm.gps;
+    if (btnPirAlarm)    btnPirAlarm.checked    = data.alarm.pir;
 
   }
-   if (data.alarm && data.alarm.gps && data.alarm.lat && data.alarm.lon) {
 
-     if (!alarmStartMarker) {
-        alarmStartMarker = L.marker([data.alarm.lat, data.alarm.lon]).addTo(map2);
-        alarmStartMarker.bindPopup("GPS Alarm Startpunkt");
-     }
-   
-     alarmStartMarker.setLatLng([data.alarm.lat, data.alarm.lon]);
-   }
-   else if (alarmStartMarker) {
-     map2.removeLayer(alarmStartMarker);
-     alarmStartMarker = null;
-   }
+  /* =======================
+     ALARM START MARKER
+  ======================= */
 
-   const gpsAlarmBox = document.getElementById("gps_alarm_box");
-   
-   if (gpsAlarmBox) {
-     if (data.alarm && data.alarm.triggered) {
-       gpsAlarmBox.classList.add("alarm-active");
-     } else {
-       gpsAlarmBox.classList.remove("alarm-active");
-     }
-   }
+  if (data.alarm && data.alarm.gps && data.alarm.lat && data.alarm.lon) {
+
+    const pos = [data.alarm.lat, data.alarm.lon];
+
+    // kleine Karte
+    if (map2) {
+
+      if (!alarmStartMarker) {
+        alarmStartMarker = L.marker(pos)
+          .addTo(map2)
+          .bindPopup("GPS Alarm Startpunkt");
+      } else {
+        alarmStartMarker.setLatLng(pos);
+      }
+
+    }
+
+    // Vollbildkarte
+    if (mapFullscreen) {
+
+      if (!alarmStartMarkerFS) {
+        alarmStartMarkerFS = L.marker(pos)
+          .addTo(mapFullscreen)
+          .bindPopup("GPS Alarm Startpunkt");
+      } else {
+        alarmStartMarkerFS.setLatLng(pos);
+      }
+
+    }
+
+  } else {
+
+    if (alarmStartMarker && map2) {
+      map2.removeLayer(alarmStartMarker);
+      alarmStartMarker = null;
+    }
+
+    if (alarmStartMarkerFS && mapFullscreen) {
+      mapFullscreen.removeLayer(alarmStartMarkerFS);
+      alarmStartMarkerFS = null;
+    }
+
+  }
+
+  /* =======================
+     ALARM BOX BLINK
+  ======================= */
+
+  const gpsAlarmBox = document.getElementById("gps_alarm_box");
+
+  if (gpsAlarmBox) {
+    if (data.alarm && data.alarm.triggered) {
+      gpsAlarmBox.classList.add("alarm-active");
+    } else {
+      gpsAlarmBox.classList.remove("alarm-active");
+    }
+  }
+
 }
 
 /* =======================
@@ -494,6 +538,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
