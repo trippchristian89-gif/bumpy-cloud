@@ -31,6 +31,8 @@ let pirAlarmEnabled = false;
 let ignoreStatusUntil = 0;
 let alarmStartMarker = null;
 let alarmStartMarkerFS = null;
+let alarmCircle = null;
+let alarmCircleFS = null;
 
 /* =======================
    WEBSOCKET CLIENT
@@ -193,6 +195,62 @@ function applyStatus(data) {
     }
 
   }
+
+   /* =======================
+   GEOFENCE CIRCLE
+======================= */
+
+if (data.alarm && data.alarm.gps && data.alarm.lat && data.alarm.lon) {
+
+  const pos = [data.alarm.lat, data.alarm.lon];
+  const radius = 300; // Meter
+
+  if (map2) {
+
+    if (!alarmCircle) {
+      alarmCircle = L.circle(pos, {
+        radius: radius,
+        color: "#b91c1c",
+        fillColor: "#b91c1c",
+        fillOpacity: 0.08,
+        weight: 2
+      }).addTo(map2);
+    } else {
+      alarmCircle.setLatLng(pos);
+    }
+
+  }
+
+  if (mapFullscreen) {
+
+    if (!alarmCircleFS) {
+      alarmCircleFS = L.circle(pos, {
+        radius: radius,
+        color: "#b91c1c",
+        fillColor: "#b91c1c",
+        fillOpacity: 0.08,
+        weight: 2
+      }).addTo(mapFullscreen);
+    } else {
+      alarmCircleFS.setLatLng(pos);
+    }
+
+  }
+
+}
+else {
+
+  if (alarmCircle && map2) {
+    map2.removeLayer(alarmCircle);
+    alarmCircle = null;
+  }
+
+  if (alarmCircleFS && mapFullscreen) {
+    mapFullscreen.removeLayer(alarmCircleFS);
+    alarmCircleFS = null;
+  }
+
+}
 
   /* =======================
      ALARM BOX BLINK
@@ -538,6 +596,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
