@@ -154,6 +154,16 @@ function applyStatus(data) {
      map2.removeLayer(alarmStartMarker);
      alarmStartMarker = null;
    }
+
+   const gpsAlarmBox = document.getElementById("gps_alarm_box");
+   
+   if (gpsAlarmBox) {
+     if (data.alarm && data.alarm.triggered) {
+       gpsAlarmBox.classList.add("alarm-active");
+     } else {
+       gpsAlarmBox.classList.remove("alarm-active");
+     }
+   }
 }
 
 /* =======================
@@ -484,6 +494,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
