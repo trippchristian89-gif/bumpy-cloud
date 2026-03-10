@@ -29,6 +29,7 @@ let gpsAlarmEnabled = false;
 let pirAlarmEnabled = false;
 
 let ignoreStatusUntil = 0;
+let alarmStartMarker = null;
 
 /* =======================
    WEBSOCKET CLIENT
@@ -140,6 +141,19 @@ function applyStatus(data) {
     if (btnPirAlarm) btnPirAlarm.checked = data.alarm.pir;
 
   }
+   if (data.alarm && data.alarm.gps && data.alarm.lat && data.alarm.lon) {
+
+     if (!alarmStartMarker) {
+        alarmStartMarker = L.marker([data.alarm.lat, data.alarm.lon]).addTo(map2);
+        alarmStartMarker.bindPopup("GPS Alarm Startpunkt");
+     }
+   
+     alarmStartMarker.setLatLng([data.alarm.lat, data.alarm.lon]);
+   }
+   else if (alarmStartMarker) {
+     map2.removeLayer(alarmStartMarker);
+     alarmStartMarker = null;
+   }
 }
 
 /* =======================
@@ -470,6 +484,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
