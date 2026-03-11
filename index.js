@@ -282,8 +282,15 @@ wss.on("connection", (ws) => {
 //--tracking--
 function startTrip(name) {
 
-  if (currentTripId) {
+  if (currentTripId !== null) {
     console.log("⚠ Trip already running:", currentTripId);
+
+    broadcastToBrowsers({
+      type: "trip",
+      status: "already_running",
+      trip_id: currentTripId
+    });
+
     return;
   }
 
@@ -302,6 +309,13 @@ function startTrip(name) {
       currentTripId = this.lastID;
 
       console.log("🧭 Trip started:", currentTripId, name);
+
+      broadcastToBrowsers({
+        type: "trip",
+        status: "started",
+        trip_id: currentTripId,
+        name: name
+      });
 
     }
   );
@@ -345,6 +359,7 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
 
 
