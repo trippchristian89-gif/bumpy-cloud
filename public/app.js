@@ -67,6 +67,18 @@ ws.onmessage = (e) => {
   if (data.type === "status") {
     applyStatus(data.payload);
   }
+
+  if (data.type === "trip") {
+
+     if (data.status === "already_running") {
+       alert("Es läuft bereits eine Reise.");
+     }
+   
+     if (data.status === "started") {
+       alert("Reise gestartet: " + data.name);
+     }
+   
+   }
 };
 
 ws.onclose = () => {
@@ -577,6 +589,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
