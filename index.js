@@ -10,6 +10,8 @@ const db = new sqlite3.Database("./bumpy.db", (err) => {
   else console.log("🗄️ SQLite connected");
 });
 
+restoreActiveTrip();
+
 /* ===== ESM Fix ===== */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -83,6 +85,30 @@ let lastHeartbeat = 0;
 let lastStatus = null;
 let streamingActive = false;
 let currentTripId = null;
+
+function restoreActiveTrip() {
+
+  db.get(
+    "SELECT id,name FROM trips WHERE end_time IS NULL ORDER BY start_time DESC LIMIT 1",
+    [],
+    (err, row) => {
+
+      if (err) {
+        console.error("Trip restore error:", err);
+        return;
+      }
+
+      if (row) {
+        currentTripId = row.id;
+        console.log("🧭 Restored active trip:", row.id, row.name);
+      } else {
+        console.log("ℹ No active trip");
+      }
+
+    }
+  );
+
+}
 
 const browserClients = new Set();
 
@@ -319,6 +345,7 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
 
 
