@@ -75,6 +75,33 @@ ws.onclose = () => {
 };
 
 /* =======================
+   TRIP COMMANDS
+======================= */
+
+function startTrip() {
+
+  const name = prompt("Name der Reise:");
+
+  if (!name) return;
+
+  ws.send(JSON.stringify({
+    type: "command",
+    command: "start_trip",
+    name: name
+  }));
+
+}
+
+function endTrip() {
+
+  ws.send(JSON.stringify({
+    type: "command",
+    command: "end_trip"
+  }));
+
+}
+
+/* =======================
    HEATER floorheating COMMANDS
 ======================= */
 function startFloor() {
@@ -296,6 +323,11 @@ window.addEventListener("DOMContentLoaded", () => {
   const btnStop  = document.getElementById("btn_stop");
   if (btnStart) btnStart.addEventListener("click", () => { console.log("🔥 UI Button START"); startHeater(); });
   if (btnStop)  btnStop.addEventListener("click",  () => { console.log("🧊 UI Button STOP");  stopHeater(); });
+
+   const btnTripStart = document.getElementById("btn_trip_start");
+   const btnTripEnd   = document.getElementById("btn_trip_end");
+   if (btnTripStart) btnTripStart.addEventListener("click", startTrip);
+   if (btnTripEnd)   btnTripEnd.addEventListener("click", endTrip);
 
    const switches = {
      btn_gps_tracking: "gps_tracking",
@@ -545,6 +577,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
