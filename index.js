@@ -217,11 +217,30 @@ wss.on("connection", (ws) => {
       return;
     }
 
-    // Browser → Command → MQTT → ESP32
     if (data.type === "command") {
-      console.log("➡️ Command:", data.command);
-      mqttPublish("bumpy/command", { command: data.command });
-    }
+
+  console.log("➡️ Command:", data.command);
+
+  // ===== TRIP START =====
+  if (data.command === "start_trip") {
+
+    const name = data.name || "Reise " + new Date().toISOString().slice(0,10);
+
+    startTrip(name);
+    return;
+  }
+
+  // ===== TRIP END =====
+  if (data.command === "end_trip") {
+
+    endTrip();
+    return;
+  }
+
+  // ===== ESP COMMANDS =====
+  mqttPublish("bumpy/command", { command: data.command });
+
+}
   });
 
   ws.on("close", () => {
@@ -294,4 +313,5 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
