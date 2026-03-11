@@ -256,6 +256,11 @@ wss.on("connection", (ws) => {
 //--tracking--
 function startTrip(name) {
 
+  if (currentTripId) {
+    console.log("⚠ Trip already running:", currentTripId);
+    return;
+  }
+
   const time = Date.now();
 
   db.run(
@@ -269,7 +274,8 @@ function startTrip(name) {
       }
 
       currentTripId = this.lastID;
-      console.log("🧭 Trip started:", currentTripId);
+
+      console.log("🧭 Trip started:", currentTripId, name);
 
     }
   );
@@ -313,5 +319,6 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
 
