@@ -10,7 +10,6 @@ const db = new sqlite3.Database("./bumpy.db", (err) => {
   else console.log("🗄️ SQLite connected");
 });
 
-restoreActiveTrip();
 
 /* ===== ESM Fix ===== */
 const __filename = fileURLToPath(import.meta.url);
@@ -41,26 +40,11 @@ app.use(basicAuth);
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 
-app.get("/api/trips", (req, res) => {
-
-  db.all(
-    "SELECT * FROM trips ORDER BY start_time DESC",
-    [],
-    (err, rows) => {
-      if (err) return res.status(500).json({ error: err });
-      res.json(rows);
-    }
-  );
-
-});
-
 app.get("/api/tracking", (req, res) => {
 
-  const tripId = req.query.trip_id;
-
   db.all(
-    "SELECT lat,lon FROM tracking WHERE trip_id=? ORDER BY timestamp",
-    [tripId],
+    "SELECT lat,lon FROM tracking ORDER BY timestamp",
+    [],
     (err, rows) => {
 
       if (err) return res.status(500).json({ error: err });
@@ -84,31 +68,6 @@ let deviceOnline = false;
 let lastHeartbeat = 0;
 let lastStatus = null;
 let streamingActive = false;
-let currentTripId = null;
-
-function restoreActiveTrip() {
-
-  db.get(
-    "SELECT id,name FROM trips WHERE end_time IS NULL ORDER BY start_time DESC LIMIT 1",
-    [],
-    (err, row) => {
-
-      if (err) {
-        console.error("Trip restore error:", err);
-        return;
-      }
-
-      if (row) {
-        currentTripId = row.id;
-        console.log("🧭 Restored active trip:", row.id, row.name);
-      } else {
-        console.log("ℹ No active trip");
-      }
-
-    }
-  );
-
-}
 
 const browserClients = new Set();
 
@@ -247,22 +206,6 @@ wss.on("connection", (ws) => {
 
   console.log("➡️ Command:", data.command);
 
-  // ===== TRIP START =====
-  if (data.command === "start_trip") {
-
-    const name = data.name || "Reise " + new Date().toISOString().slice(0,10);
-
-    startTrip(name);
-    return;
-  }
-
-  // ===== TRIP END =====
-  if (data.command === "end_trip") {
-
-    endTrip();
-    return;
-  }
-
   // ===== ESP COMMANDS =====
   mqttPublish("bumpy/command", { command: data.command });
 
@@ -279,73 +222,14 @@ wss.on("connection", (ws) => {
 /* =======================
    HELPERS
 ======================= */
-//--tracking--
-function startTrip(name) {
-
-  if (currentTripId !== null) {
-    console.log("⚠ Trip already running:", currentTripId);
-
-    broadcastToBrowsers({
-      type: "trip",
-      status: "already_running",
-      trip_id: currentTripId
-    });
-
-    return;
-  }
-
-  const time = Date.now();
-
-  db.run(
-    "INSERT INTO trips (name,start_time) VALUES (?,?)",
-    [name, time],
-    function(err) {
-
-      if (err) {
-        console.error("Trip start error:", err);
-        return;
-      }
-
-      currentTripId = this.lastID;
-
-      console.log("🧭 Trip started:", currentTripId, name);
-
-      broadcastToBrowsers({
-        type: "trip",
-        status: "started",
-        trip_id: currentTripId,
-        name: name
-      });
-
-    }
-  );
-}
-
-function endTrip() {
-
-  if (!currentTripId) return;
-
-  const time = Date.now();
-
-  db.run(
-    "UPDATE trips SET end_time=? WHERE id=?",
-    [time, currentTripId]
-  );
-
-  console.log("🛑 Trip ended:", currentTripId);
-
-  currentTripId = null;
-}
 
 function saveTracking(lat, lon) {
 
-  if (!currentTripId) return;
-
   const time = Date.now();
 
   db.run(
-    "INSERT INTO tracking (trip_id,timestamp,lat,lon) VALUES (?,?,?,?)",
-    [currentTripId, time, lat, lon]
+    "INSERT INTO tracking (timestamp,lat,lon) VALUES (?,?,?)",
+    [time, lat, lon]
   );
 }
 
@@ -359,6 +243,7 @@ function broadcastToBrowsers(obj) {
     if (c.readyState === 1) c.send(msg);
   }
 }
+
 
 
 
