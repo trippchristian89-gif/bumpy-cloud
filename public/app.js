@@ -168,43 +168,50 @@ function applyStatus(data) {
 
 if (data.alarm && data.alarm.gps && data.alarm.lat && data.alarm.lon) {
 
+  if(!map2) return;
+
   const pos = [data.alarm.lat, data.alarm.lon];
-  const radius = 300; // Meter
+  const radius = 300;
 
-  if (map2) {
+  // normale Map
+  if (!alarmCircle) {
 
-    if (!alarmCircle) {
-      alarmCircle = L.circle(pos, {
-        radius: radius,
-        color: "#b91c1c",
-        fillColor: "#b91c1c",
-        fillOpacity: 0.08,
-        weight: 2
-      }).addTo(map2);
-    } else {
-      alarmCircle.setLatLng(pos);
-    }
+    alarmCircle = L.circle(pos,{
+      radius: radius,
+      color: "#b91c1c",
+      fillColor: "#b91c1c",
+      fillOpacity: 0.08,
+      weight: 2
+    });
 
+    alarmCircle.addTo(map2);
+
+  } else {
+    alarmCircle.setLatLng(pos);
   }
 
+  // Fullscreen Map
   if (mapFullscreen) {
 
     if (!alarmCircleFS) {
-      alarmCircleFS = L.circle(pos, {
+
+      alarmCircleFS = L.circle(pos,{
         radius: radius,
         color: "#b91c1c",
         fillColor: "#b91c1c",
         fillOpacity: 0.08,
         weight: 2
-      }).addTo(mapFullscreen);
+      });
+
+      alarmCircleFS.addTo(mapFullscreen);
+
     } else {
       alarmCircleFS.setLatLng(pos);
     }
 
   }
 
-}
-else {
+} else {
 
   if (alarmCircle && map2) {
     map2.removeLayer(alarmCircle);
@@ -647,6 +654,7 @@ new CloseControl().addTo(mapFullscreen);
      loadRoute();
    }
 }
+
 
 
 
