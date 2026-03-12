@@ -648,12 +648,28 @@ new CloseControl().addTo(mapFullscreen);
       fillOpacity:0.9
     }).addTo(mapFullscreen);
   }
+   // Geofence auch im Fullscreen anzeigen
+   if(alarmCircle){
+   
+     const pos = alarmCircle.getLatLng();
+     const radius = alarmCircle.getRadius();
+   
+     alarmCircleFS = L.circle(pos,{
+       radius: radius,
+       color: "#b91c1c",
+       fillColor: "#b91c1c",
+       fillOpacity: 0.08,
+       weight: 2
+     }).addTo(mapFullscreen);
+   
+   }
    // Route auch im Fullscreen anzeigen
    const routeToggle = document.getElementById("btn_route_show");
    if(routeToggle && routeToggle.checked){
      loadRoute();
    }
 }
+
 
 
 
