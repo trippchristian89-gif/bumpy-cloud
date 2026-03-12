@@ -483,7 +483,30 @@ function updateMapMarker() {
 }
 
 
+async function loadRoute(){
 
+  const res = await fetch("/api/tracking");
+  const points = await res.json();
+
+  if(!points.length){
+    console.log("Keine Trackingpunkte gefunden");
+    return;
+  }
+
+  const latlngs = points.map(p => [p.lat, p.lon]);
+
+  if(routeLine){
+    map2.removeLayer(routeLine);
+  }
+
+  routeLine = L.polyline(latlngs,{
+    color:"#2563eb",
+    weight:3
+  }).addTo(map2);
+
+  map2.fitBounds(routeLine.getBounds());
+
+}
 
 
 /* =======================
@@ -609,6 +632,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
