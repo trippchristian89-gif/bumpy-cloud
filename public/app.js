@@ -25,6 +25,7 @@ let gpsLon = null;
 let gpsSats = 0;
 
 let gpsTrackingEnabled = false;
+let routeLine = null;
 let gpsAlarmEnabled = false;
 let pirAlarmEnabled = false;
 
@@ -85,33 +86,6 @@ ws.onclose = () => {
   console.warn("⚠️ WS disconnected");
   setOnline(false);
 };
-
-/* =======================
-   TRIP COMMANDS
-======================= */
-
-function startTrip() {
-
-  const name = prompt("Name der Reise:");
-
-  if (!name) return;
-
-  ws.send(JSON.stringify({
-    type: "command",
-    command: "start_trip",
-    name: name
-  }));
-
-}
-
-function endTrip() {
-
-  ws.send(JSON.stringify({
-    type: "command",
-    command: "end_trip"
-  }));
-
-}
 
 /* =======================
    HEATER floorheating COMMANDS
@@ -184,9 +158,33 @@ function applyStatus(data) {
     if (btnPirAlarm)    btnPirAlarm.checked    = data.alarm.pir;
 
   }
+
+   /* =======================
+   loadRoute -tracking nazeigen
+======================= */
+async function loadRoute(){
+
+  const res = await fetch("/api/tracking");
+  const points = await res.json();
+
+  const latlngs = points.map(p => [p.lat, p.lon]);
+
+  if(routeLine){
+    map2.removeLayer(routeLine);
+  }
+
+  routeLine = L.polyline(latlngs,{
+    color:"#2563eb",
+    weight:3
+  }).addTo(map2);
+
+  map2.fitBounds(routeLine.getBounds());
+
+}
+   
    /* =======================
    GEOFENCE CIRCLE
-======================= */
+   ======================= */
 
 if (data.alarm && data.alarm.gps && data.alarm.lat && data.alarm.lon) {
 
@@ -346,7 +344,29 @@ window.addEventListener("DOMContentLoaded", () => {
      btn_gps_alarm: "gps_alarm",
      btn_pir_alarm: "pir_alarm"
    };
+
+   const routeToggle = document.getElementById("btn_route_show");
+
+   if(routeToggle){
    
+     routeToggle.addEventListener("change",()=>{
+   
+       if(routeToggle.checked){
+   
+         loadRoute();
+   
+       }else{
+   
+         if(routeLine){
+           map2.removeLayer(routeLine);
+           routeLine = null;
+         }
+   
+       }
+   
+     });
+   
+   }
    Object.entries(switches).forEach(([id, cmd]) => {
    
      const el = document.getElementById(id);
@@ -589,6 +609,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
