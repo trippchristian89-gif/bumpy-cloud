@@ -26,6 +26,7 @@ let gpsSats = 0;
 
 let gpsTrackingEnabled = false;
 let routeLine = null;
+let routeLineFS = null;
 let gpsAlarmEnabled = false;
 let pirAlarmEnabled = false;
 
@@ -159,28 +160,7 @@ function applyStatus(data) {
 
   }
 
-   /* =======================
-   loadRoute -tracking nazeigen
-======================= */
-async function loadRoute(){
 
-  const res = await fetch("/api/tracking");
-  const points = await res.json();
-
-  const latlngs = points.map(p => [p.lat, p.lon]);
-
-  if(routeLine){
-    map2.removeLayer(routeLine);
-  }
-
-  routeLine = L.polyline(latlngs,{
-    color:"#2563eb",
-    weight:3
-  }).addTo(map2);
-
-  map2.fitBounds(routeLine.getBounds());
-
-}
    
    /* =======================
    GEOFENCE CIRCLE
@@ -355,14 +335,19 @@ window.addEventListener("DOMContentLoaded", () => {
    
          loadRoute();
    
-       }else{
-   
-         if(routeLine){
-           map2.removeLayer(routeLine);
-           routeLine = null;
+         }else{
+         
+           if(routeLine){
+             map2.removeLayer(routeLine);
+             routeLine = null;
+           }
+         
+           if(routeLineFS && mapFullscreen){
+             mapFullscreen.removeLayer(routeLineFS);
+             routeLineFS = null;
+           }
+         
          }
-   
-       }
    
      });
    
@@ -482,7 +467,9 @@ function updateMapMarker() {
   gpsMarker2.setStyle(style);
 }
 
-
+   /* =======================
+   loadRoute -tracking nazeigen
+======================= */
 async function loadRoute(){
 
   const res = await fetch("/api/tracking");
@@ -495,6 +482,7 @@ async function loadRoute(){
 
   const latlngs = points.map(p => [p.lat, p.lon]);
 
+  // normale Karte
   if(routeLine){
     map2.removeLayer(routeLine);
   }
@@ -505,6 +493,21 @@ async function loadRoute(){
   }).addTo(map2);
 
   map2.fitBounds(routeLine.getBounds());
+
+  // fullscreen Karte
+  if(mapFullscreen){
+
+    if(routeLineFS){
+      mapFullscreen.removeLayer(routeLineFS);
+    }
+
+    routeLineFS = L.polyline(latlngs,{
+      color:"#2563eb",
+      weight:3
+    }).addTo(mapFullscreen);
+
+    mapFullscreen.fitBounds(routeLineFS.getBounds());
+  }
 
 }
 
@@ -632,6 +635,7 @@ new CloseControl().addTo(mapFullscreen);
     }).addTo(mapFullscreen);
   }
 }
+
 
 
 
