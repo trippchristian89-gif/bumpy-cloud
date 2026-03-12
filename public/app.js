@@ -472,8 +472,15 @@ function updateMapMarker() {
 ======================= */
 async function loadRoute(){
 
+  if(!map2){
+    console.log("Map noch nicht bereit");
+    return;
+  }
+
   const res = await fetch("/api/tracking");
   const points = await res.json();
+
+  console.log("Trackingpunkte:", points.length);
 
   if(!points.length){
     console.log("Keine Trackingpunkte gefunden");
@@ -489,12 +496,12 @@ async function loadRoute(){
 
   routeLine = L.polyline(latlngs,{
     color:"#2563eb",
-    weight:3
+    weight:4
   }).addTo(map2);
 
   map2.fitBounds(routeLine.getBounds());
 
-  // fullscreen Karte
+  // Fullscreen Karte
   if(mapFullscreen){
 
     if(routeLineFS){
@@ -503,7 +510,7 @@ async function loadRoute(){
 
     routeLineFS = L.polyline(latlngs,{
       color:"#2563eb",
-      weight:3
+      weight:4
     }).addTo(mapFullscreen);
 
     mapFullscreen.fitBounds(routeLineFS.getBounds());
@@ -634,7 +641,13 @@ new CloseControl().addTo(mapFullscreen);
       fillOpacity:0.9
     }).addTo(mapFullscreen);
   }
+   // Route auch im Fullscreen anzeigen
+   const routeToggle = document.getElementById("btn_route_show");
+   if(routeToggle && routeToggle.checked){
+     loadRoute();
+   }
 }
+
 
 
 
