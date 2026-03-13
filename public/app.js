@@ -168,7 +168,7 @@ function applyStatus(data) {
 
 if (data.alarm && data.alarm.gps && data.alarm.lat && data.alarm.lon) {
 
-  if(!map2) return;
+  if (!map2) return;
 
   const pos = [data.alarm.lat, data.alarm.lon];
   const radius = 300;
@@ -698,6 +698,7 @@ if (gpsLat && gpsLon){
      loadRoute();
    }
 }
+
 
 
 
