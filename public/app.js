@@ -225,18 +225,18 @@ if (data.alarm && data.alarm.gps && data.alarm.lat && data.alarm.lon) {
 
 }
 
-  /* =======================
-     ALARM BOX BLINK
-  ======================= */
+/* =======================
+   ALARM BOX BLINK
+======================= */
 
-  const gpsAlarmBox = document.getElementById("gps_alarm_box");
+const gpsAlarmBox = document.getElementById("gps_alarm_box");
 
-  if (gpsAlarmBox) {
-    if (data.alarm && data.alarm.triggered) {
-      gpsAlarmBox.classList.add("alarm-active");
-    } else {
-      gpsAlarmBox.classList.remove("alarm-active");
-    }
+if (gpsAlarmBox) {
+
+  if (data.alarm && data.alarm.triggered && data.alarm.gps) {
+    gpsAlarmBox.classList.add("alarm-active");
+  } else {
+    gpsAlarmBox.classList.remove("alarm-active");
   }
 
 }
@@ -698,6 +698,7 @@ if (gpsLat && gpsLon){
      loadRoute();
    }
 }
+
 
 
 
