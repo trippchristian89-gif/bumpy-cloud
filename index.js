@@ -163,6 +163,8 @@ mqttClient.on("message", (topic, message) => {
   /* ===== STATUS ===== */
 if (topic === "bumpy/status") {
 
+  console.log("STATUS RECEIVED:", data);
+
   lastStatus = data;
   broadcastToBrowsers({ type: "status", payload: data });
 
