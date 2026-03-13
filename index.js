@@ -174,8 +174,9 @@ if (topic === "bumpy/status") {
       data.alarm.triggered === true &&
       data.alarm.gps === true;
 
-    const pirTriggered =
-      data.alarm.pir === true;
+const pirTriggered =
+  data.alarm.pir === true &&
+  data.alarm.triggered === true;
 
     /* ===== GPS ALARM ===== */
 
