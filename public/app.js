@@ -434,9 +434,14 @@ window.addEventListener("DOMContentLoaded", () => {
       L.DomEvent.on(btn, "click", L.DomEvent.preventDefault);
       L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation);
       L.DomEvent.on(btn, "click", () => {
-        if (gpsLat !== null && gpsLon !== null)
+      
+        if (gpsLat !== null && gpsLon !== null) {
+      
           mapFollow = true;   // Follow wieder aktivieren
           map2.setView([gpsLat, gpsLon], 15, { animate: true });
+      
+        }
+      
       });
       return container;
     }
@@ -596,8 +601,6 @@ async function loadRoute(){
    FULLSCREEN MAP
 ======================= */
 
-let mapFullscreen;
-
 function openFullscreenMap(){
 
   document.getElementById("mapFullscreen").classList.add("active");
@@ -695,6 +698,7 @@ if (gpsLat && gpsLon){
      loadRoute();
    }
 }
+
 
 
 
