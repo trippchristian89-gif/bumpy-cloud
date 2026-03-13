@@ -184,14 +184,11 @@ if (topic === "bumpy/status") {
       const lat = data.gps?.lat;
       const lon = data.gps?.lon;
 
-      sendTelegram(
-`🚨 BUMPY ALARM
+    sendTelegram(
+      `🚨 BUMPY ALARM
 
-GPS Geofence ausgelöst!
-
-Standort:
-https://maps.google.com/?q=${lat},${lon}`
-      );
+      GPS Geofence ausgelöst!`
+    );
 
       lastAlarmState.gps = true;
     }
