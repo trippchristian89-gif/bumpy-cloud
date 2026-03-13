@@ -4,6 +4,33 @@ import { WebSocketServer } from "ws";
 import path from "path";
 import { fileURLToPath } from "url";
 import sqlite3 from "sqlite3";
+
+/* ===== TELEGRAM ===== */
+
+const TELEGRAM_TOKEN = "DEIN_BOT_TOKEN";
+const TELEGRAM_CHAT_ID = "DEINE_CHAT_ID";
+
+async function sendTelegram(text) {
+  try {
+    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+
+    await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: text
+      })
+    });
+
+    console.log("📨 Telegram sent");
+
+  } catch (err) {
+    console.error("Telegram error:", err.message);
+  }
+}
 /* ===== SQLite ===== */
 const db = new sqlite3.Database("./bumpy.db", (err) => {
   if (err) console.error("SQLite error:", err.message);
@@ -69,6 +96,12 @@ let lastHeartbeat = 0;
 let lastStatus = null;
 let streamingActive = false;
 
+/* ===== ALARM STATE ===== */
+let lastAlarmState = {
+  gps: false,
+  pir: false
+};
+
 const browserClients = new Set();
 
 /* =======================
@@ -128,11 +161,59 @@ mqttClient.on("message", (topic, message) => {
   }
 
   /* ===== STATUS ===== */
-  if (topic === "bumpy/status") {
-    lastStatus = data;
-    broadcastToBrowsers({ type: "status", payload: data });
-    return;
+if (topic === "bumpy/status") {
+
+  lastStatus = data;
+  broadcastToBrowsers({ type: "status", payload: data });
+
+  if (data.alarm) {
+
+    const gpsTriggered =
+      data.alarm.triggered === true &&
+      data.alarm.gps === true;
+
+    const pirTriggered =
+      data.alarm.pir === true;
+
+    /* ===== GPS ALARM ===== */
+
+    if (gpsTriggered && !lastAlarmState.gps) {
+
+      const lat = data.gps?.lat;
+      const lon = data.gps?.lon;
+
+      sendTelegram(
+`🚨 BUMPY ALARM
+
+GPS Geofence ausgelöst!
+
+Standort:
+https://maps.google.com/?q=${lat},${lon}`
+      );
+
+      lastAlarmState.gps = true;
+    }
+
+    if (!gpsTriggered) lastAlarmState.gps = false;
+
+    /* ===== PIR ALARM ===== */
+
+    if (pirTriggered && !lastAlarmState.pir) {
+
+      sendTelegram(
+`🚨 BUMPY ALARM
+
+Bewegung im Fahrzeug erkannt!`
+      );
+
+      lastAlarmState.pir = true;
+    }
+
+    if (!pirTriggered) lastAlarmState.pir = false;
   }
+
+  return;
+}
   
   /* ===== TRACKING ===== */
   if (topic === "bumpy/tracking") {
