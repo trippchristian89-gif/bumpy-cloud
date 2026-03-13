@@ -7,8 +7,8 @@ import sqlite3 from "sqlite3";
 
 /* ===== TELEGRAM ===== */
 
-const TELEGRAM_TOKEN = "DEIN_BOT_TOKEN";
-const TELEGRAM_CHAT_ID = "DEINE_CHAT_ID";
+const TELEGRAM_TOKEN = "8689306620:AAHOSOzoCwD5zFx0iFcgo9T3Qyz_b67jtNs";
+const TELEGRAM_CHAT_ID = "1224754557";
 
 async function sendTelegram(text) {
   try {
