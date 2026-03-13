@@ -383,6 +383,8 @@ window.addEventListener("DOMContentLoaded", () => {
 ======================= */
 let map = null;
 let gpsMarker = null;
+let mapFullscreen;
+let gpsMarkerFS = null;
 
 /* =======================
    MAP 2 INIT (Page 2)
@@ -463,6 +465,7 @@ window.addEventListener("DOMContentLoaded", () => {
    MARKER UPDATE
 ======================= */
 function updateMapMarker() {
+
   if (!map2 || !gpsMarker2) return;
   if (gpsLat === null || gpsLon === null) return;
 
@@ -470,8 +473,16 @@ function updateMapMarker() {
     ? { color: "#16a34a", fillColor: "#16a34a" }
     : { color: "#f97316", fillColor: "#f97316" };
 
+  // kleine Karte
   gpsMarker2.setLatLng([gpsLat, gpsLon]);
   gpsMarker2.setStyle(style);
+
+  // Fullscreen Karte ebenfalls aktualisieren
+  if (mapFullscreen && gpsMarkerFS) {
+    gpsMarkerFS.setLatLng([gpsLat, gpsLon]);
+    gpsMarkerFS.setStyle(style);
+  }
+
 }
 
    /* =======================
@@ -640,14 +651,16 @@ const CloseControl = L.Control.extend({
 });
 new CloseControl().addTo(mapFullscreen);
 
-  if (gpsLat && gpsLon){
-    L.circleMarker([gpsLat,gpsLon],{
-      radius:8,
-      color:"#16a34a",
-      fillColor:"#16a34a",
-      fillOpacity:0.9
-    }).addTo(mapFullscreen);
-  }
+if (gpsLat && gpsLon){
+
+  gpsMarkerFS = L.circleMarker([gpsLat,gpsLon],{
+    radius:8,
+    color:"#16a34a",
+    fillColor:"#16a34a",
+    fillOpacity:0.9
+  }).addTo(mapFullscreen);
+
+}
    // Geofence auch im Fullscreen anzeigen
    if(alarmCircle){
    
@@ -669,6 +682,7 @@ new CloseControl().addTo(mapFullscreen);
      loadRoute();
    }
 }
+
 
 
 
