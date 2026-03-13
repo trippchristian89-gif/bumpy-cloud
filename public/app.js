@@ -385,11 +385,14 @@ let map = null;
 let gpsMarker = null;
 let mapFullscreen;
 let gpsMarkerFS = null;
+let mapFollow = true;
+
 
 /* =======================
    MAP 2 INIT (Page 2)
 ======================= */
 let map2, gpsMarker2;
+
 
 window.addEventListener("DOMContentLoaded", () => {
   map2 = L.map("map2", {
@@ -407,6 +410,11 @@ window.addEventListener("DOMContentLoaded", () => {
     fillColor: "#f97316",
     fillOpacity: 0.9
   }).addTo(map2);
+
+   //user bewegt Karte -> Follow deaktivieren
+   map2.on("dragstart", () => {
+     mapFollow = false;
+   });
 
   // Locate Button map2
   const LocateControl2 = L.Control.extend({
@@ -427,6 +435,7 @@ window.addEventListener("DOMContentLoaded", () => {
       L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation);
       L.DomEvent.on(btn, "click", () => {
         if (gpsLat !== null && gpsLon !== null)
+          mapFollow = true;   // Follow wieder aktivieren
           map2.setView([gpsLat, gpsLon], 15, { animate: true });
       });
       return container;
@@ -482,6 +491,10 @@ function updateMapMarker() {
     gpsMarkerFS.setLatLng([gpsLat, gpsLon]);
     gpsMarkerFS.setStyle(style);
   }
+
+   if(mapFollow){
+     map2.setView([gpsLat, gpsLon], map2.getZoom());
+}
 
 }
 
@@ -682,6 +695,7 @@ if (gpsLat && gpsLon){
      loadRoute();
    }
 }
+
 
 
 
