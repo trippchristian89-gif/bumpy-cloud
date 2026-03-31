@@ -25,14 +25,12 @@ let gpsLon = null;
 let gpsSats = 0;
 
 let gpsTrackingEnabled = false;
-let routeLine = null;
-let routeLineFS = null;
 let gpsAlarmEnabled = false;
 let pirAlarmEnabled = false;
 
+let activeAlarm = false;
+
 let ignoreStatusUntil = 0;
-let alarmCircle = null;
-let alarmCircleFS = null;
 
 /* =======================
    WEBSOCKET CLIENT
@@ -70,17 +68,9 @@ ws.onmessage = (e) => {
     applyStatus(data.payload);
   }
 
-  if (data.type === "trip") {
-
-     if (data.status === "already_running") {
-       alert("Es läuft bereits eine Reise.");
-     }
-   
-     if (data.status === "started") {
-       alert("Reise gestartet: " + data.name);
-     }
-   
-   }
+  if (data.type === "alarm") {
+    showAlarm(data.payload);
+  }
 };
 
 ws.onclose = () => {
@@ -115,10 +105,8 @@ function stopHeater() {
    STATUS MAPPING
 ======================= */
 function applyStatus(data) {
-
   if (Date.now() < ignoreStatusUntil) return;
   if (!isOnline) return;
-
   tempBumpy = data.temp_bumpy;
   ntcBumpyError = data.ntc_bumpy_error;
 
@@ -138,12 +126,11 @@ function applyStatus(data) {
 
   updateMapMarker();
   updateUI();
-
-  if (map2 && gpsLat !== null && gpsLon !== null && !map2._gpsCentered) {
-    map2.setView([gpsLat, gpsLon], 15);
-    map2._gpsCentered = true;
-  }
-
+   if (map2 && gpsLat !== null && gpsLon !== null && !map2._gpsCentered) {
+     map2.setView([gpsLat, gpsLon], 15);
+     map2._gpsCentered = true;
+   }
+   
   /* =======================
      ALARM STATE SYNC
   ======================= */
@@ -151,94 +138,16 @@ function applyStatus(data) {
   if (data.alarm) {
 
     const btnGpsTracking = document.getElementById("btn_gps_tracking");
-    const btnGpsAlarm    = document.getElementById("btn_gps_alarm");
-    const btnPirAlarm    = document.getElementById("btn_pir_alarm");
+    const btnGpsAlarm = document.getElementById("btn_gps_alarm");
+    const btnPirAlarm = document.getElementById("btn_pir_alarm");
 
     if (btnGpsTracking) btnGpsTracking.checked = data.alarm.tracking;
-    if (btnGpsAlarm)    btnGpsAlarm.checked    = data.alarm.gps;
-    if (btnPirAlarm)    btnPirAlarm.checked    = data.alarm.pir;
+    if (btnGpsAlarm) btnGpsAlarm.checked = data.alarm.gps;
+    if (btnPirAlarm) btnPirAlarm.checked = data.alarm.pir;
 
   }
-
-
-   
-   /* =======================
-   GEOFENCE CIRCLE
-   ======================= */
-
-if (data.alarm && data.alarm.gps && data.alarm.lat && data.alarm.lon) {
-
-  const pos = [data.alarm.lat, data.alarm.lon];
-  const radius = 300;
-
-  // normale Map
-  if (!alarmCircle) {
-
-    alarmCircle = L.circle(pos,{
-      radius: radius,
-      color: "#b91c1c",
-      fillColor: "#b91c1c",
-      fillOpacity: 0.08,
-      weight: 2
-    });
-
-    alarmCircle.addTo(map2);
-
-  } else {
-    alarmCircle.setLatLng(pos);
-  }
-
-  // Fullscreen Map
-  if (mapFullscreen) {
-
-    if (!alarmCircleFS) {
-
-      alarmCircleFS = L.circle(pos,{
-        radius: radius,
-        color: "#b91c1c",
-        fillColor: "#b91c1c",
-        fillOpacity: 0.08,
-        weight: 2
-      });
-
-      alarmCircleFS.addTo(mapFullscreen);
-
-    } else {
-      alarmCircleFS.setLatLng(pos);
-    }
-
-  }
-
-} else {
-
-  if (alarmCircle && map2) {
-    map2.removeLayer(alarmCircle);
-    alarmCircle = null;
-  }
-
-  if (alarmCircleFS && mapFullscreen) {
-    mapFullscreen.removeLayer(alarmCircleFS);
-    alarmCircleFS = null;
-  }
-
 }
 
-/* =======================
-   ALARM BOX BLINK
-======================= */
-
-const gpsAlarmBox = document.getElementById("gps_alarm_box");
-
-if (gpsAlarmBox) {
-
-  if (data.alarm && data.alarm.triggered && data.alarm.gps) {
-    gpsAlarmBox.classList.add("alarm-active");
-  } else {
-    gpsAlarmBox.classList.remove("alarm-active");
-  }
-
-}
-}
 /* =======================
    UI
 ======================= */
@@ -319,44 +228,12 @@ window.addEventListener("DOMContentLoaded", () => {
   if (btnStart) btnStart.addEventListener("click", () => { console.log("🔥 UI Button START"); startHeater(); });
   if (btnStop)  btnStop.addEventListener("click",  () => { console.log("🧊 UI Button STOP");  stopHeater(); });
 
-   const btnTripStart = document.getElementById("btn_trip_start");
-   const btnTripEnd   = document.getElementById("btn_trip_end");
-   if (btnTripStart) btnTripStart.addEventListener("click", startTrip);
-   if (btnTripEnd)   btnTripEnd.addEventListener("click", endTrip);
-
    const switches = {
      btn_gps_tracking: "gps_tracking",
      btn_gps_alarm: "gps_alarm",
      btn_pir_alarm: "pir_alarm"
    };
-
-   const routeToggle = document.getElementById("btn_route_show");
-
-   if(routeToggle){
    
-     routeToggle.addEventListener("change",()=>{
-   
-       if(routeToggle.checked){
-   
-         loadRoute();
-   
-         }else{
-         
-           if(routeLine){
-             map2.removeLayer(routeLine);
-             routeLine = null;
-           }
-         
-           if(routeLineFS && mapFullscreen){
-             mapFullscreen.removeLayer(routeLineFS);
-             routeLineFS = null;
-           }
-         
-         }
-   
-     });
-   
-   }
    Object.entries(switches).forEach(([id, cmd]) => {
    
      const el = document.getElementById(id);
@@ -364,7 +241,11 @@ window.addEventListener("DOMContentLoaded", () => {
    
      el.addEventListener("change", () => {
 
-       ignoreStatusUntil = Date.now() + 1000; // 1 Sekunde ignorieren
+       ignoreStatusUntil = Date.now() + 1000;
+
+       if (id === "btn_gps_alarm" && !el.checked) {
+         clearAlarm();
+       }
    
        ws.send(JSON.stringify({
          type: "command",
@@ -381,16 +262,11 @@ window.addEventListener("DOMContentLoaded", () => {
 ======================= */
 let map = null;
 let gpsMarker = null;
-let mapFullscreen;
-let gpsMarkerFS = null;
-let mapFollow = true;
-
 
 /* =======================
    MAP 2 INIT (Page 2)
 ======================= */
 let map2, gpsMarker2;
-
 
 window.addEventListener("DOMContentLoaded", () => {
   map2 = L.map("map2", {
@@ -408,11 +284,6 @@ window.addEventListener("DOMContentLoaded", () => {
     fillColor: "#f97316",
     fillOpacity: 0.9
   }).addTo(map2);
-
-   //user bewegt Karte -> Follow deaktivieren
-   map2.on("dragstart", () => {
-     mapFollow = false;
-   });
 
   // Locate Button map2
   const LocateControl2 = L.Control.extend({
@@ -432,14 +303,8 @@ window.addEventListener("DOMContentLoaded", () => {
       L.DomEvent.on(btn, "click", L.DomEvent.preventDefault);
       L.DomEvent.on(btn, "click", L.DomEvent.stopPropagation);
       L.DomEvent.on(btn, "click", () => {
-      
-        if (gpsLat !== null && gpsLon !== null) {
-      
-          mapFollow = true;   // Follow wieder aktivieren
+        if (gpsLat !== null && gpsLon !== null)
           map2.setView([gpsLat, gpsLon], 15, { animate: true });
-      
-        }
-      
       });
       return container;
     }
@@ -477,7 +342,6 @@ window.addEventListener("DOMContentLoaded", () => {
    MARKER UPDATE
 ======================= */
 function updateMapMarker() {
-
   if (!map2 || !gpsMarker2) return;
   if (gpsLat === null || gpsLon === null) return;
 
@@ -485,73 +349,30 @@ function updateMapMarker() {
     ? { color: "#16a34a", fillColor: "#16a34a" }
     : { color: "#f97316", fillColor: "#f97316" };
 
-  // kleine Karte
   gpsMarker2.setLatLng([gpsLat, gpsLon]);
   gpsMarker2.setStyle(style);
-
-  // Fullscreen Karte ebenfalls aktualisieren
-  if (mapFullscreen && gpsMarkerFS) {
-    gpsMarkerFS.setLatLng([gpsLat, gpsLon]);
-    gpsMarkerFS.setStyle(style);
-  }
-
-   if(mapFollow){
-     map2.setView([gpsLat, gpsLon], map2.getZoom());
 }
 
-}
 
-   /* =======================
-   loadRoute -tracking nazeigen
+
+
+
+/* =======================
+   GEOFENCE ALARM
 ======================= */
-async function loadRoute(){
-
-  if(!map2){
-    console.log("Map noch nicht bereit");
-    return;
-  }
-
-  const res = await fetch("/api/tracking");
-  const points = await res.json();
-
-  console.log("Trackingpunkte:", points.length);
-
-  if(!points.length){
-    console.log("Keine Trackingpunkte gefunden");
-    return;
-  }
-
-  const latlngs = points.map(p => [p.lat, p.lon]);
-
-  // normale Karte
-  if(routeLine){
-    map2.removeLayer(routeLine);
-  }
-
-  routeLine = L.polyline(latlngs,{
-    color:"#2563eb",
-    weight:4
-  }).addTo(map2);
-
-  map2.fitBounds(routeLine.getBounds());
-
-  // Fullscreen Karte
-  if(mapFullscreen){
-
-    if(routeLineFS){
-      mapFullscreen.removeLayer(routeLineFS);
-    }
-
-    routeLineFS = L.polyline(latlngs,{
-      color:"#2563eb",
-      weight:4
-    }).addTo(mapFullscreen);
-
-    mapFullscreen.fitBounds(routeLineFS.getBounds());
-  }
-
+function showAlarm(payload) {
+  activeAlarm = true;
+  const el = document.getElementById("geofence-alarm");
+  if (!el) return;
+  el.querySelector(".alarm-text").textContent = "⚠ GPS ALARM — Geofence verlassen!";
+  el.classList.add("visible");
 }
 
+function clearAlarm() {
+  activeAlarm = false;
+  const el = document.getElementById("geofence-alarm");
+  if (el) el.classList.remove("visible");
+}
 
 /* =======================
    SWIPE
@@ -598,6 +419,8 @@ async function loadRoute(){
 /* =======================
    FULLSCREEN MAP
 ======================= */
+
+let mapFullscreen;
 
 function openFullscreenMap(){
 
@@ -665,58 +488,15 @@ const CloseControl = L.Control.extend({
 });
 new CloseControl().addTo(mapFullscreen);
 
-if (gpsLat && gpsLon){
-
-  gpsMarkerFS = L.circleMarker([gpsLat,gpsLon],{
-    radius:8,
-    color:"#16a34a",
-    fillColor:"#16a34a",
-    fillOpacity:0.9
-  }).addTo(mapFullscreen);
-
+  if (gpsLat && gpsLon){
+    L.circleMarker([gpsLat,gpsLon],{
+      radius:8,
+      color:"#16a34a",
+      fillColor:"#16a34a",
+      fillOpacity:0.9
+    }).addTo(mapFullscreen);
+  }
 }
-   // Geofence auch im Fullscreen anzeigen
-   if(alarmCircle){
-   
-     const pos = alarmCircle.getLatLng();
-     const radius = alarmCircle.getRadius();
-   
-     alarmCircleFS = L.circle(pos,{
-       radius: radius,
-       color: "#b91c1c",
-       fillColor: "#b91c1c",
-       fillOpacity: 0.08,
-       weight: 2
-     }).addTo(mapFullscreen);
-   
-   }
-   // Route auch im Fullscreen anzeigen
-   const routeToggle = document.getElementById("btn_route_show");
-   if(routeToggle && routeToggle.checked){
-     loadRoute();
-   }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
